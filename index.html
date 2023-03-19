@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>
+      Simula Tu Hipoteca — Calculadora de cuota y cuadro de amortización
+    </title>
+
+    <meta name="title" content="Simula tu hipoteca - Calcula cuota y cuadro de amortización"/>
+    <meta name="description" content="Calcula la cuota de tu hipoteca, el cuadro de amortización, incluyendo euribor variable y cambiante, periodos de interés fijo así como amortizaciones anticipadas." />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    
+    <script>
+    
+    </script>
+    <script async="" src="./src/jquery.min.js"></script>
+    <script async="" src="./src/main.js"></script>
+	  <link href="./src/style.css" rel="stylesheet" type="text/css">
+
+  
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="top">
+        <h1>Simulador de hipoteca</h1>
+        <div class="desc">
+          <p>Herramienta de simulación de hipotecas que te permite calcular de manera precisa y fácil las amortizaciones parciales de tu préstamo hipotecario. </p>
+          <p>Podrás visualizar cómo afecta el pago de amortizaciones parciales a la reducción de tu deuda hipotecaria y a la disminución de tus intereses. </p>
+          <p>Además, podrás comparar diferentes escenarios de pago para tomar decisiones informadas sobre tu hipoteca. </p>
+          <p>¡Calcula tu préstamo hipotecario con nuestro simulador y toma el control de tus finanzas!"</p>
+        </div>
+      </div>
+
+      <div class="mainbox">
+        <div class="title">DATOS</div>
+        <div>
+          <span>Capital:</span>
+          <input
+            id="capital"
+            value="65000"
+            onkeyup="mainFunction.check({target:this,type:'int',min:0});"
+            size="7"
+          />€
+        </div>
+        <div>
+          <span>Plaztarget:</span>
+          <input
+            id="anyos"
+            value="15"
+            onkeyup="mainFunction.check({target:this,type:'number',min:1,max:50});"
+            size="2"
+          />años
+        </div>
+        <div>
+          <span>Tiptarget:</span>
+          <select id="tipo">
+            <option>Variable</option>
+            <option>Fijo</option>
+          </select>
+        </div>
+        <div class="variable">
+          <div>
+            <span>Interés:</span>
+            <label>EURIBOR</label> +
+            <input
+              id="interesvariable"
+              value="1.75"
+              style="width: 40px"
+              onkeyup="mainFunction.check({target:this,type:'number',min:0});"
+            />%
+          </div>
+          <div class="inicial">
+            <div>
+              <label> <input type="checkbox" checked /> Periodo inicial fijo </label>
+            </div>
+            <div>
+              <input
+                id="interesvariableinicial"
+                value="2.25"
+                style="width: 45px"
+                onkeyup="mainFunction.check({target:this,type:'number',min:0});"
+              />
+              <label class="low">% durante</label>
+              <input
+                id="mesesfijo"
+                style="width: 40px"
+                value="60"
+                onkeyup="mainFunction.check({target:this,type:'int',min:0});"
+              />
+              <label class="low">meses</label>
+            </div>
+          </div>
+        </div>
+        <div class="fijo" style="display: none">
+          <div>
+            <span>Interés:</span>
+            <input
+              id="interesfijo"
+              value="2.25"
+              style="width: 50px"
+              onkeyup="mainFunction.check({target:this,type:'number',min:0});"
+            />%
+          </div>
+        </div>
+      </div>
+
+      <div class="amort">
+        <div class="title">AMORTIZACIONES PARCIALES</div>
+        <div id="amort"></div>
+        <div class="add"><a id="addAmort">Añadir</a></div>
+      </div>
+
+      <div class="euribor">
+        <div class="title">EVOLUCIÓN EURIBOR <span></span></div>
+        <div id="euribor">
+          <div year="2023">
+            <span class="year">2023</span>
+            <input
+              type="range"
+              month="0"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.2"
+            />
+            <span class="val">2.20</span>
+          </div>
+          <div year="2024">
+            <span class="year">2024</span
+            ><input
+              type="range"
+              month="12"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.1"
+            /><span class="val">2.10</span>
+          </div>
+          <div year="2025">
+            <span class="year">2025</span
+            ><input
+              type="range"
+              month="24"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2"
+            /><span class="val">2.00</span>
+          </div>
+          <div year="2026">
+            <span class="year">2026</span
+            ><input
+              type="range"
+              month="36"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.3"
+            /><span class="val">2.30</span>
+          </div>
+          <div year="2027">
+            <span class="year">2027</span
+            ><input
+              type="range"
+              month="48"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.4"
+            /><span class="val">2.40</span>
+          </div>
+          <div year="2028">
+            <span class="year">2028</span
+            ><input
+              type="range"
+              month="60"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.3"
+            /><span class="val">2.30</span>
+          </div>
+          <div year="2029">
+            <span class="year">2029</span
+            ><input
+              type="range"
+              month="72"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.2"
+            /><span class="val">2.20</span>
+          </div>
+          <div year="2030">
+            <span class="year">2030</span
+            ><input
+              type="range"
+              month="84"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.4"
+            /><span class="val">2.40</span>
+          </div>
+          <div year="2031">
+            <span class="year">2031</span
+            ><input
+              type="range"
+              month="96"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3.1"
+            /><span class="val">3.10</span>
+          </div>
+          <div year="2032">
+            <span class="year">2032</span
+            ><input
+              type="range"
+              month="108"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3.9"
+            /><span class="val">3.90</span>
+          </div>
+          <div year="2033">
+            <span class="year">2033</span
+            ><input
+              type="range"
+              month="120"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="4.5"
+            /><span class="val">4.50</span>
+          </div>
+          <div year="2034">
+            <span class="year">2034</span
+            ><input
+              type="range"
+              month="132"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="5"
+            /><span class="val">5.00</span>
+          </div>
+          <div year="2035">
+            <span class="year">2035</span
+            ><input
+              type="range"
+              month="144"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="5.1"
+            /><span class="val">5.10</span>
+          </div>
+          <div year="2036">
+            <span class="year">2036</span
+            ><input
+              type="range"
+              month="156"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="4.7"
+            /><span class="val">4.70</span>
+          </div>
+          <div year="2037">
+            <span class="year">2037</span
+            ><input
+              type="range"
+              month="168"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="4.6"
+            /><span class="val">4.60</span>
+          </div>
+          <div year="2038">
+            <span class="year">2038</span
+            ><input
+              type="range"
+              month="180"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="4.1"
+            /><span class="val">4.10</span>
+          </div>
+          <div year="2039">
+            <span class="year">2039</span
+            ><input
+              type="range"
+              month="192"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3.9"
+            /><span class="val">3.90</span>
+          </div>
+          <div year="2040">
+            <span class="year">2040</span
+            ><input
+              type="range"
+              month="204"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3.5"
+            /><span class="val">3.50</span>
+          </div>
+          <div year="2041">
+            <span class="year">2041</span
+            ><input
+              type="range"
+              month="216"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3"
+            /><span class="val">3.00</span>
+          </div>
+          <div year="2042">
+            <span class="year">2042</span
+            ><input
+              type="range"
+              month="228"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.4"
+            /><span class="val">2.40</span>
+          </div>
+          <div year="2043">
+            <span class="year">2043</span
+            ><input
+              type="range"
+              month="240"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.2"
+            /><span class="val">2.20</span>
+          </div>
+          <div year="2044">
+            <span class="year">2044</span
+            ><input
+              type="range"
+              month="252"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="2.6"
+            /><span class="val">2.60</span>
+          </div>
+          <div year="2045">
+            <span class="year">2045</span
+            ><input
+              type="range"
+              month="264"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3"
+            /><span class="val">3.00</span>
+          </div>
+          <div year="2046">
+            <span class="year">2046</span
+            ><input
+              type="range"
+              month="276"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3.3"
+            /><span class="val">3.30</span>
+          </div>
+          <div year="2047">
+            <span class="year">2047</span
+            ><input
+              type="range"
+              month="288"
+              min="-0.5"
+              max="6"
+              step="0.1"
+              value="3.5"
+            /><span class="val">3.50</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="button">
+        <a id="calcular">CALCULAR</a>
+      </div>
+
+      <div class="cuota" style="display: none">
+        Tu cuota inicial: <span id="cuota"></span><br />
+        Total de intereses: <span id="total_intereses"></span>
+      </div>
+
+      <div class="draw" style="display: none">
+        <div><strong>CUADRO DE AMORTIZACIÓN:</strong></div>
+        <div class="left">
+          <table cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tbody>
+              <tr style="font-weight: bold">
+                <td>Mes</td>
+                <td>Cuota</td>
+                <td>Pendiente</td>
+                <td>Capital</td>
+                <td>Intereses</td>
+              </tr>
+            </tbody>
+            <tbody id="cuadro"></tbody>
+          </table>
+        </div>
+        <div class="right"></div>
+        <div class="clear"></div>
+      </div>
+    </div>
+  </body>
+</html>

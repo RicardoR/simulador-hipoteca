@@ -1,0 +1,281 @@
+@font-face {
+  font-family: Palanquin;
+  font-style: normal;
+  font-weight: 400;
+  src: local("Palanquin Regular"), local("Palanquin-Regular"),
+    url(https://fonts.gstatic.com/s/palanquin/v1/fJwKFYo9XEsYeVx86yVYiBJtnKITppOI_IvcXXDNrsc.woff2)
+      format("woff2");
+  unicode-range: U+0100024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: Palanquin;
+  font-style: normal;
+  font-weight: 400;
+  src: local("Palanquin Regular"), local("Palanquin-Regular"),
+    url(https://fonts.gstatic.com/s/palanquin/v1/wDcF5fDzT3UyPmqw3IJ7_FtXRa8TVwTICgirnJhmVJw.woff2)
+      format("woff2");
+  unicode-range: U+000000FF, U+0131, U+01520153, U+02C6, U+02DA, U+02DC,
+    U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  text-align: center;
+  font-family: Palanquin, sans-serif, Arial;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+}
+img {
+  border: 0;
+}
+a {
+  text-decoration: none;
+  cursor: pointer;
+  color: inherit;
+}
+input,
+select {
+  font-size: 18px;
+}
+.clear {
+  clear: both;
+}
+.wrapper {
+  width: 1240px;
+  text-align: left;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  min-height: 600px;
+  box-shadow: 2px 5px 9px #999;
+  border-radius: 3px;
+}
+.top {
+  text-align: center;
+  margin: 0 0 20px;
+}
+.top h1 {
+  font-size: 64px;
+  text-shadow: 1px 3px 5px #aaa;
+}
+.top h1 span {
+  color: #1e83ce;
+  font-weight: 700;
+}
+.top .desc {
+  margin: 0 0 15px;
+}
+.top .desc div {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2fab05;
+}
+.amort,
+.euribor,
+.mainbox {
+  float: left;
+  font-size: 18px;
+  padding: 10px;
+  border-radius: 3px;
+}
+.amort .title,
+.euribor .title,
+.mainbox .title {
+  font-weight: 700;
+}
+.mainbox {
+  width: 250px;
+  background-color: #d2e7f7;
+}
+.mainbox div {
+  margin: 0 0 10px;
+}
+.mainbox div span {
+  width: 70px;
+  display: inline-block;
+}
+.mainbox div label.low {
+  font-size: 14px;
+}
+.mainbox div input {
+  margin: 0 5px 0 0;
+}
+.mainbox .inicial {
+  background: #c2d7e7;
+  padding: 8px;
+}
+.amort {
+  width: 670px;
+  background-color: #f7e1c5;
+  margin: 0 20px;
+}
+.amort div {
+  margin: 0 0 10px;
+}
+.amort div span {
+  margin: 0 0 0 10px;
+}
+.amort div a {
+  color: #e40309;
+  font-weight: 700;
+  margin: 0 0 0 10px;
+}
+.amort div input {
+  margin: 0 5px 0 0;
+}
+.amort div.add {
+  text-align: right;
+  margin: 0 10px 0 0;
+}
+.amort div.add a {
+  color: #2fab05;
+}
+.euribor {
+  width: 240px;
+  background: #ecfcde;
+  height: 346px;
+  overflow: auto;
+}
+.euribor div[year] span.year {
+  width: 40px;
+  display: inline-block;
+}
+.euribor div[year] input[type="range"] {
+  margin: 0 5px;
+  vertical-align: bottom;
+  width: 110px;
+}
+.button {
+  clear: both;
+  padding: 30px 0;
+  text-align: center;
+}
+.button a {
+  padding: 6px 25px;
+  background: #4cc448;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 5px;
+  font-size: 24px;
+  box-shadow: 1px 3px 3px #aaa;
+  border: 1px solid #3da82d;
+}
+.cuota {
+  clear: both;
+  text-align: center;
+  font-size: 22px;
+}
+.cuota span {
+  font-weight: 700;
+  font-size: 26px;
+  color: #1e83ce;
+}
+.cuota span#total_intereses {
+  color: #e24a4a;
+}
+.draw {
+  clear: both;
+  margin: 20px 0;
+}
+.draw .left {
+  float: left;
+  width: 840px;
+}
+.draw .right {
+  float: right;
+  width: 336px;
+}
+.draw .right ins {
+  width: 336px;
+  height: 280px;
+  margin: 0 0 20px;
+  display: inline-block;
+}
+.draw table {
+  border-top: 1px solid #666;
+  background: #fff;
+}
+.draw table #cuadro tr:nth-child(odd) {
+  background: #e6f0f7;
+}
+.draw table tr td:first-child {
+  padding: 0 0 0 10px;
+}
+@media screen and (max-device-width: 800px),
+  screen and (max-width: 800px) {
+  body {
+    font-size: 14px;
+    background: 0 0;
+  }
+  .wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+  }
+  .top ins {
+    height: 100px;
+  }
+  .top h1 {
+    font-size: 30px;
+  }
+  .top .desc {
+    font-size: 12px;
+    text-align: justify;
+  }
+  .top .desc div {
+    font-size: 18px;
+    text-align: center;
+  }
+  .amort,
+  .euribor,
+  .mainbox {
+    width: 100%;
+    margin: 0 0 10px;
+  }
+  .amort .am,
+  .amort .am input,
+  .amort .am select {
+    font-size: 12px;
+  }
+  .euribor {
+    height: 54px;
+    overflow: hidden;
+  }
+  .euribor .title span {
+    float: right;
+    cursor: pointer;
+  }
+  .euribor .title span::after {
+    content: "▼";
+  }
+  .euribor div[year] input[type="range"] {
+    width: 160px;
+  }
+  .euribor.open {
+    height: 300px;
+    overflow: auto;
+  }
+  .euribor.open .title span::after {
+    content: "▲";
+  }
+  .draw .left {
+    float: none;
+    width: 100%;
+  }
+  .draw .right {
+    width: 100%;
+    float: left;
+    clear: both;
+    text-align: center;
+  }
+  .draw .right ins {
+    width: 320px;
+    height: 100px;
+    margin: 20px 0 0 -10px;
+  }
+}
