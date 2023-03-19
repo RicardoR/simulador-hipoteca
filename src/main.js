@@ -1,5 +1,3 @@
-const EURIBOR = 2.2;
-
 const mainFunction = new (function () {
   let total,
     months,
@@ -13,7 +11,7 @@ const mainFunction = new (function () {
   let euriborEvolutionUserData = [];
   let amortizationUserData = [];
   this.init = function () {
-    $('#tipo').change(function () {
+    $('#typeField').change(function () {
       const selectedType = $(this).val();
       $('.variable,.fijo').hide();
       if (selectedType == '') {
@@ -31,16 +29,15 @@ const mainFunction = new (function () {
     buildEuriborEvolutionSection();
   };
 
-  // todo: refactor me please!
   function buildEuriborEvolutionSection() {
-    var euriborEvolutionTemplate = '';
+    let euriborEvolutionTemplate = '';
     const currentYear = new Date().getFullYear();
     getControlsData();
-    var euriborSerieList = getEuriborSerieList();
-    var counter = 0;
-    var euriborSerieListLenght = euriborEvolutionUserData.length == 0;
-    for (i = currentYear; i < currentYear + years; i++) {
-      var euriborValue =
+    let euriborSerieList = getEuriborSerieList();
+    let counter = 0;
+    let euriborSerieListLenght = euriborEvolutionUserData.length == 0;
+    for (let i = currentYear; i < currentYear + years; i++) {
+      let euriborValue =
         euriborSerieListLenght || !euriborEvolutionUserData[counter * 12]
           ? euriborSerieList[counter]
           : euriborEvolutionUserData[counter * 12];
@@ -63,7 +60,7 @@ const mainFunction = new (function () {
     $('#euribor').html(euriborEvolutionTemplate);
     if (euriborSerieListLenght) {
       $('#euribor').on('input', 'input[type=range]', function () {
-        var newValue = parseFloat($(this).val());
+        const newValue = parseFloat($(this).val());
         $(this).next().html(newValue.toFixed(2));
         euriborEvolutionUserData[parseInt($(this).attr('month'))] = newValue;
       });
@@ -83,15 +80,14 @@ const mainFunction = new (function () {
     `;
     if (type == 'fijo') {
       interest = fixedInterest;
+    } else if (hasFixedInitialPeriod) {
+      interest = initialVariableInterest;
     } else {
-      if (hasFixedInitialPeriod) {
-        interest = initialVariableInterest;
-      } else {
-        interest = variableInterest + euriborValue;
-      }
+      interest = variableInterest + euriborValue;
     }
+
     let monthlyMortgagePayment = calculateMonthlyMortaggePayment(total, months);
-    for (i = 0; i < months; i++) {
+    for (let i = 0; i < months; i++) {
       if (typeof euriborEvolutionUserData[i] == 'number') {
         euriborValue = euriborEvolutionUserData[i];
       }
@@ -136,7 +132,7 @@ const mainFunction = new (function () {
           <td> ${currentInterestAmount.toFixed(2)}</td>
         </tr>`;
       if (i == 0) {
-        $('#cuota')
+        $('#mortgageContainer')
           .html(monthlyMortgagePayment.toFixed(2) + '€')
           .parent()
           .show();
@@ -145,12 +141,12 @@ const mainFunction = new (function () {
         break;
       }
     }
-    $('#cuadro').html(initialPendingAmount);
-    $('#total_intereses').html(totalInterestMonthly.toFixed(2) + '€');
-    $('.draw,.cuota').show();
+    $('#tableBody').html(initialPendingAmount);
+    $('#interestTotalContainer').html(totalInterestMonthly.toFixed(2) + '€');
+    $('.draw,.mortgage').show();
   };
   this.changes = function () {
-    $('.draw,.cuota').hide();
+    $('.draw,.mortgage').hide();
   };
   function calculateAmortizations() {
     amortizationUserData = [];
@@ -159,7 +155,7 @@ const mainFunction = new (function () {
       const yearValue = parseInt(amortizationContainer.find('.anyo').val());
       const monthValue = parseInt(amortizationContainer.find('.mes').val());
       const quantity = parseInt(amortizationContainer.find('.capital').val());
-      var amortizationType = amortizationContainer.find('.tipo').val();
+      const amortizationType = amortizationContainer.find('.tipo').val();
       amortizationUserData[(yearValue - 1) * 12 + monthValue - 1] = {
         cantidad: quantity,
         tipo: amortizationType,
@@ -169,11 +165,11 @@ const mainFunction = new (function () {
   function buildPartialAmortizations() {
     getControlsData();
     let htmlAmortization = '<div class="am">Año:<select class="anyo" style="width:42px">';
-    for (var m = 1; m <= years; m++) {
+    for (let m = 1; m <= years; m++) {
       htmlAmortization += `<option>${m}</option>`;
     }
     htmlAmortization += '</select><span>Mes:</span><select class="mes" style="width:42px">';
-    for (var m = 1; m <= 12; m++) {
+    for (let m = 1; m <= 12; m++) {
       htmlAmortization += `<option>${m}</option>`;
     }
     htmlAmortization +=
@@ -183,19 +179,19 @@ const mainFunction = new (function () {
   }
   function getControlsData() {
     total = parseInt($('#capital').val());
-    years = parseInt($('#anyos').val());
-    type = $('#tipo').val().toLowerCase();
-    fixedInterest = parseFloat($('#interesfijo').val());
-    variableInterest = parseFloat($('#interesvariable').val());
-    initialVariableInterest = parseFloat($('#interesvariableinicial').val());
-    fixedMonths = parseInt($('#mesesfijo').val());
+    years = parseInt($('#yearsField').val());
+    type = $('#typeField').val().toLowerCase();
+    fixedInterest = parseFloat($('#fixedInterestField').val());
+    variableInterest = parseFloat($('#variableInterestField').val());
+    initialVariableInterest = parseFloat($('#initialVariableInterestField').val());
+    fixedMonths = parseInt($('#fixedMonthsField').val());
   }
   function getPeriodInterest() {
     return interest / 12 / 100;
   }
   function calculateMonthlyMortaggePayment(pendingAmount, pendingMonths) {
-    var periodInterest = getPeriodInterest();
-    var monthlyMortaggePayment = pendingAmount * ((periodInterest * Math.pow(1 + periodInterest, pendingMonths)) / (Math.pow(1 + periodInterest, pendingMonths) - 1));
+    const periodInterest = getPeriodInterest();
+    const monthlyMortaggePayment = pendingAmount * ((periodInterest * Math.pow(1 + periodInterest, pendingMonths)) / (Math.pow(1 + periodInterest, pendingMonths) - 1));
     return monthlyMortaggePayment;
   }
   this.check = function (amortizationObject) {
@@ -237,12 +233,12 @@ const mainFunction = new (function () {
     return parseInt(m) === m;
   }
 })();
-var fixParseInt = parseInt;
+let fixParseInt = parseInt;
 parseInt = function (b, a) {
   return fixParseInt(b, a || 10);
 };
 
-var initInterval = setInterval(function () {
+let initInterval = setInterval(function () {
   if (window.jQuery) {
     mainFunction.init();
     clearInterval(initInterval);
@@ -251,7 +247,7 @@ var initInterval = setInterval(function () {
 
 function getEuriborSerieList() {
   return [
-    EURIBOR, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
+    2.2, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
     4.7, 4.6, 4.1, 3.9, 3.5, 3, 2.4, 2.2, 2.6, 3, 3.3, 3.5, 3.6, 3.8,
     3.7, 3.8, 3.8, 3.9, 4.1, 4, 4.1, 4.1, 4.3, 4.3, 4.2, 4.3, 4.4, 4.5,
     4.2, 4.3, 4.4, 4.1, 4.3, 4.5, 4.4, 4.1, 4, 3.7

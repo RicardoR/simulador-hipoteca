@@ -165,17 +165,17 @@ select {
   box-shadow: 1px 3px 3px #aaa;
   border: 1px solid #3da82d;
 }
-.cuota {
+.mortgage {
   clear: both;
   text-align: center;
   font-size: 22px;
 }
-.cuota span {
+.mortgage span {
   font-weight: 700;
   font-size: 26px;
   color: #1e83ce;
 }
-.cuota span#total_intereses {
+.mortgage span#interestTotalContainer {
   color: #e24a4a;
 }
 .draw {
@@ -199,15 +199,16 @@ select {
 .draw table {
   border-top: 1px solid #666;
   background: #fff;
+  width: 100%;
 }
-.draw table #cuadro tr:nth-child(odd) {
+.draw table #tableBody tr:nth-child(odd) {
   background: #e6f0f7;
 }
 .draw table tr td:first-child {
   padding: 0 0 0 10px;
 }
-@media screen and (max-device-width: 800px),
-  screen and (max-width: 800px) {
+@media screen and (max-device-width: 760px),
+  screen and (max-width: 760px) {
   body {
     font-size: 14px;
     background: 0 0;
