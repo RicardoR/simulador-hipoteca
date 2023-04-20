@@ -42,6 +42,9 @@ input,
 select {
   font-size: 18px;
 }
+.display-none {
+  display: none;
+}
 .clear {
   clear: both;
 }
@@ -182,10 +185,7 @@ select {
   clear: both;
   margin: 20px 0;
 }
-.draw .left {
-  float: left;
-  width: 840px;
-}
+
 .draw .right {
   float: right;
   width: 336px;
@@ -206,6 +206,10 @@ select {
 }
 .draw table tr td:first-child {
   padding: 0 0 0 10px;
+}
+.draw .table_wrapper {
+  width: 900px;
+  margin: auto;
 }
 @media screen and (max-device-width: 760px),
   screen and (max-width: 760px) {
@@ -264,7 +268,7 @@ select {
   .euribor.open .title span::after {
     content: "▲";
   }
-  .draw .left {
+  .draw .table_wrapper {
     float: none;
     width: 100%;
   }
