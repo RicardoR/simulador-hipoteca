@@ -46,7 +46,7 @@ const mainFunction = new (function () {
         <div year="${i}">
           <span class="year">${i}</span>
           <input type="range" month="${counter * 12}" 
-                 min="-0.5" max="6" step="0.1" value="${euriborValue}" />
+                 min="-0.5" max="15" step="0.1" value="${euriborValue}" />
           <span class="val">${euriborValue.toFixed(2)}</span>
         </div>
       `;
@@ -70,6 +70,7 @@ const mainFunction = new (function () {
   this.getTable = function () {
     getControlsData();
     calculateAmortizations();
+    const currentYear = new Date().getFullYear();
     months = years * 12;
     let totalInterestMonthly = (interest = 0);
     let pendingAmount = total;
@@ -88,6 +89,8 @@ const mainFunction = new (function () {
 
     let monthlyMortgagePayment = calculateMonthlyMortaggePayment(total, months);
     for (let i = 0; i < months; i++) {
+      const currentMortageYear = Math.abs(i / 12);
+      const mortageYear = currentYear + currentMortageYear;
       if (typeof euriborEvolutionUserData[i] == 'number') {
         euriborValue = euriborEvolutionUserData[i];
       }
@@ -97,7 +100,7 @@ const mainFunction = new (function () {
             '<tr><td colspan="5" style="font-weight:bold; color:#e24a4a; text-align:center">Fin periodo inicial fijo</tr></td>';
         }
         initialPendingAmount += `
-          <tr><td colspan="5" style="font-weight:bold; text-align:center">EURIBOR: ${euriborValue}</tr></td>
+          <tr><td colspan="5" style="font-weight:bold; text-align:center">AÑO ${mortageYear} EURIBOR: ${euriborValue} - AÑO ${currentMortageYear} DEL PRÉSTAMO</tr></td>
         `;
         interest = variableInterest + euriborValue;
         monthlyMortgagePayment = calculateMonthlyMortaggePayment(pendingAmount, months - i);
