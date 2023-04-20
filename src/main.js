@@ -200,41 +200,16 @@ const mainFunction = new (function () {
   this.check = function (amortizationObject) {
     let checkResult = false;
     if (amortizationObject.type == 'int') {
-      amortizationObject.target.value = amortizationObject.target.value.replace(',', '').replace('.', '');
-      checkResult = !isNaN(amortizationObject.target.value);
-      if (checkResult) {
-        checkResult =
-          e(parseInt(amortizationObject.target.value)) &&
-          (typeof amortizationObject.min == 'undefined' || parseInt(amortizationObject.target.value) >= amortizationObject.min) &&
-          (typeof amortizationObject.max == 'undefined' || parseInt(amortizationObject.target.value) <= amortizationObject.max);
-      }
-      if (checkResult) {
-        amortizationObject.target.style.backgroundColor = 'white';
-      } else {
-        amortizationObject.target.style.backgroundColor = '#dd8585';
-      }
+      checkResult = updateDataWhenIntDataChanged(amortizationObject);
     }
     if (amortizationObject.type == 'number') {
-      amortizationObject.target.value = amortizationObject.target.value.replace(',', '.');
-      checkResult = !isNaN(amortizationObject.target.value);
-      if (checkResult) {
-        checkResult =
-          (typeof amortizationObject.min == 'undefined' || Number(amortizationObject.target.value) >= amortizationObject.min) &&
-          (typeof amortizationObject.max == 'undefined' || Number(amortizationObject.target.value) <= amortizationObject.max);
-      }
-      if (checkResult) {
-        amortizationObject.target.style.backgroundColor = 'white';
-      } else {
-        amortizationObject.target.style.backgroundColor = '#dd8585';
-      }
+      checkResult = updateDataWhenNumberDataChanged(amortizationObject);
     }
     if (checkResult && amortizationObject.max == 50) {
       buildEuriborEvolutionSection();
     }
   };
-  function e(m) {
-    return parseInt(m) === m;
-  }
+
 })();
 let fixParseInt = parseInt;
 parseInt = function (b, a) {
@@ -248,6 +223,39 @@ let initInterval = setInterval(function () {
   }
 }, 50);
 
+function updateDataWhenNumberDataChanged(amortizationObject) {
+  amortizationObject.target.value = amortizationObject.target.value.replace(',', '.');
+  let checkResult = !isNaN(amortizationObject.target.value);
+  if (checkResult) {
+    checkResult =
+      (typeof amortizationObject.min == 'undefined' || Number(amortizationObject.target.value) >= amortizationObject.min) &&
+      (typeof amortizationObject.max == 'undefined' || Number(amortizationObject.target.value) <= amortizationObject.max);
+  }
+  if (checkResult) {
+    amortizationObject.target.style.backgroundColor = 'white';
+  } else {
+    amortizationObject.target.style.backgroundColor = '#dd8585';
+  }
+  return checkResult;
+}
+
+function updateDataWhenIntDataChanged(amortizationObject) {
+  amortizationObject.target.value = amortizationObject.target.value.replace(',', '').replace('.', '');
+  let checkResult = !isNaN(amortizationObject.target.value);
+  if (checkResult) {
+    checkResult =
+      isNumber(parseInt(amortizationObject.target.value)) &&
+      (typeof amortizationObject.min == 'undefined' || parseInt(amortizationObject.target.value) >= amortizationObject.min) &&
+      (typeof amortizationObject.max == 'undefined' || parseInt(amortizationObject.target.value) <= amortizationObject.max);
+  }
+  if (checkResult) {
+    amortizationObject.target.style.backgroundColor = 'white';
+  } else {
+    amortizationObject.target.style.backgroundColor = '#dd8585';
+  }
+  return checkResult;
+}
+
 function getEuriborSerieList() {
   return [
     2.2, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
@@ -256,3 +264,7 @@ function getEuriborSerieList() {
     4.2, 4.3, 4.4, 4.1, 4.3, 4.5, 4.4, 4.1, 4, 3.7
   ];
 }
+
+  function isNumber(m) {
+    return parseInt(m) === m;
+  }
