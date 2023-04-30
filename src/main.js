@@ -1,3 +1,6 @@
+const TERM = 'Plazo';
+const FEE = 'Cuota';
+
 const mainFunction = new (function () {
   let total,
     months,
@@ -25,9 +28,17 @@ const mainFunction = new (function () {
       $(this).parent().toggleClass('open');
     });
     $('#calcular').click(mainFunction.getTable);
-    $('#addAmort').click(buildPartialAmortizations);
+    $('#addAmort').click(buildAmortization);
     buildEuriborEvolutionSection();
+    addOwnAmortizations();
   };
+
+  function addOwnAmortizations() {
+    const firstAmortization = getFirstAmortization();
+    const secondAmortization = getSecondAmortization();
+    buildAmortization(firstAmortization);
+    buildAmortization(secondAmortization);
+  }
 
   function buildEuriborEvolutionSection() {
     let euriborEvolutionTemplate = '';
@@ -114,7 +125,7 @@ const mainFunction = new (function () {
             </td>
           </tr>`;
         
-        if (currentAmortization.tipo == 'Plazo') {
+        if (currentAmortization.tipo == TERM) {
           months -= Math.floor(currentAmortization.cantidad / monthlyMortgagePayment);
         } else {
           monthlyMortgagePayment = monthlyMortgagePayment * (1 - currentAmortization.cantidad / pendingAmount);
@@ -175,11 +186,50 @@ const mainFunction = new (function () {
     for (let m = 1; m <= 12; m++) {
       htmlAmortization += `<option>${m}</option>`;
     }
-    htmlAmortization +=
-      '</select><span>Capital:</span> <input size="5" onKeyUp="mainFunction.check({target:this,type:\'int\',min:0});" value="1000" class="capital" />€ <span>con reducción de <select style="width:68px" class="tipo"><option>Plazo</option><option>Cuota</option></select></span><a onclick="$(this).parent().remove(); mainFunction.changes();">Eliminar</a></div>';
+    htmlAmortization += `</select>
+      <span>Capital:</span>
+      <input size="5" onKeyUp="mainFunction.check({target:this,type:\'int\',min:0});" value="1000" class="capital" />€
+      <span>con reducción de
+        <select style="width:68px" class="tipo">
+          <option>${TERM}</option>
+          <option>${FEE}</option>
+        </select>
+      </span>
+      <a onclick="$(this).parent().remove(); mainFunction.changes();">Eliminar</a>
+      </div>`;
     $('#amort').append(htmlAmortization);
     mainFunction.changes();
   }
+
+  function buildAmortization(data) {
+    getControlsData();
+    let htmlAmortization =
+      '<div class="am">Año: <select class="anyo" style="width:42px">';
+    for (let year = 1; year <= years; year++) {
+      const selected = year === data?.year ? 'selected' : '';
+      htmlAmortization += `<option ${selected}>${year}</option>`;
+    }
+    htmlAmortization +=
+      '</select><span>Mes: </span><select class="mes" style="width:42px">';
+    for (let month = 1; month <= 12; month++) {
+      const selected = month === data?.month ? 'selected' : '';
+      htmlAmortization += `<option ${selected}>${month}</option>`;
+    }
+    htmlAmortization += `</select>
+      <span>Capital: </span>
+      <input size="5" value=${data?.amount ?? 1000} onKeyUp="mainFunction.check({target:this,type:\'int\',min:0});" class="capital" />€ 
+      <span>con reducción de
+          <select style="width:68px" class="tipo">
+            <option ${data?.type === TERM ? 'selected' : ''} >${TERM}</option>
+            <option ${data?.type === FEE ? 'selected' : ''} >${FEE}</option>
+          </select>
+        </span>
+      <a onclick="$(this).parent().remove(); mainFunction.changes();">Eliminar</a>
+      </div>`;
+    $('#amort').append(htmlAmortization);
+    mainFunction.changes();
+  }
+
   function getControlsData() {
     total = parseInt($('#capital').val());
     years = parseInt($('#yearsField').val());
@@ -256,6 +306,10 @@ function updateDataWhenIntDataChanged(amortizationObject) {
   return checkResult;
 }
 
+function isNumber(m) {
+  return parseInt(m) === m;
+}
+
 function getEuriborSerieList() {
   return [
     2.2, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
@@ -265,6 +319,20 @@ function getEuriborSerieList() {
   ];
 }
 
-  function isNumber(m) {
-    return parseInt(m) === m;
-  }
+function getFirstAmortization() {
+  return {
+    year: 1,
+    month: 5,
+    amount: 10000,
+    type: FEE,
+  };
+}
+
+function getSecondAmortization() {
+  return {
+    year: 4,
+    month: 1,
+    amount: 10000,
+    type: TERM,
+  };
+}
