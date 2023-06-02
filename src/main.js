@@ -321,7 +321,7 @@ function getFirstAmortization() {
   return {
     year: 1,
     month: 1,
-    amount: 4000,
+    amount: 1000,
     type: FEE,
   };
 }
