@@ -1,6 +1,6 @@
 const TERM = 'Plazo';
 const FEE = 'Cuota';
-
+const START_DATE = new Date(2023,12,05);
 const mainFunction = new (function () {
   let total,
     months,
@@ -35,14 +35,12 @@ const mainFunction = new (function () {
 
   function addOwnAmortizations() {
     const firstAmortization = getFirstAmortization();
-    const secondAmortization = getSecondAmortization();
     buildAmortization(firstAmortization);
-    buildAmortization(secondAmortization);
   }
 
   function buildEuriborEvolutionSection() {
     let euriborEvolutionTemplate = '';
-    const currentYear = new Date().getFullYear();
+    const currentYear = START_DATE.getFullYear();
     getControlsData();
     let euriborSerieList = getEuriborSerieList();
     let counter = 0;
@@ -81,7 +79,7 @@ const mainFunction = new (function () {
   this.getTable = function () {
     getControlsData();
     calculateAmortizations();
-    const currentYear = new Date().getFullYear();
+    const currentYear = START_DATE.getFullYear();
     months = years * 12;
     let totalInterestMonthly = (interest = 0);
     let pendingAmount = total;
@@ -322,17 +320,8 @@ function getEuriborSerieList() {
 function getFirstAmortization() {
   return {
     year: 1,
-    month: 5,
-    amount: 10000,
-    type: FEE,
-  };
-}
-
-function getSecondAmortization() {
-  return {
-    year: 4,
     month: 1,
-    amount: 10000,
-    type: TERM,
+    amount: 4000,
+    type: FEE,
   };
 }
