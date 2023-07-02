@@ -1,6 +1,7 @@
 const TERM = 'Plazo';
 const FEE = 'Cuota';
-const START_DATE = new Date(2023, 12, 5);
+const START_DATE = new Date(2023, 4, 12);
+console.log(START_DATE);
 const mainFunction = new (function () {
   let total,
     months,
@@ -35,7 +36,9 @@ const mainFunction = new (function () {
 
   function addOwnAmortizations() {
     const firstAmortization = getFirstAmortization();
+    const secondAmortization = getSecondAmortization();
     buildAmortization(firstAmortization);
+    buildAmortization(secondAmortization);
   }
 
   function buildEuriborEvolutionSection() {
@@ -323,5 +326,14 @@ function getFirstAmortization() {
     month: 1,
     amount: 4000,
     type: FEE,
+  };
+}
+
+function getSecondAmortization() {
+  return {
+    year: 1,
+    month: 2,
+    amount: 6000,
+    type: TERM,
   };
 }
