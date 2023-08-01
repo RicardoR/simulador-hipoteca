@@ -35,10 +35,8 @@ const mainFunction = new (function () {
   };
 
   function addOwnAmortizations() {
-    const firstAmortization = getFirstAmortization();
-    const secondAmortization = getSecondAmortization();
-    buildAmortization(firstAmortization);
-    buildAmortization(secondAmortization);
+    const amortizations = getAmortizationsData();
+    amortizations.forEach(a => buildAmortization(a));
   }
 
   function buildEuriborEvolutionSection() {
@@ -177,30 +175,7 @@ const mainFunction = new (function () {
       };
     });
   }
-  function buildPartialAmortizations() {
-    getControlsData();
-    let htmlAmortization = '<div class="am">Año:<select class="anyo" style="width:42px">';
-    for (let m = 1; m <= years; m++) {
-      htmlAmortization += `<option>${m}</option>`;
-    }
-    htmlAmortization += '</select><span>Mes:</span><select class="mes" style="width:42px">';
-    for (let m = 1; m <= 12; m++) {
-      htmlAmortization += `<option>${m}</option>`;
-    }
-    htmlAmortization += `</select>
-      <span>Capital:</span>
-      <input size="5" onKeyUp="mainFunction.check({target:this,type:\'int\',min:0});" value="1000" class="capital" />€
-      <span>con reducción de
-        <select style="width:68px" class="tipo">
-          <option>${TERM}</option>
-          <option>${FEE}</option>
-        </select>
-      </span>
-      <a onclick="$(this).parent().remove(); mainFunction.changes();">Eliminar</a>
-      </div>`;
-    $('#amort').append(htmlAmortization);
-    mainFunction.changes();
-  }
+  
 
   function buildAmortization(data) {
     getControlsData();
@@ -320,20 +295,27 @@ function getEuriborSerieList() {
   ];
 }
 
-function getFirstAmortization() {
-  return {
+function getAmortizationsData() {
+  const FirstAmortization = {
     year: 1,
     month: 1,
     amount: 4000,
     type: FEE,
   };
-}
 
-function getSecondAmortization() {
-  return {
+  const SecondAmortization = {
     year: 1,
     month: 2,
     amount: 6000,
     type: TERM,
   };
+
+  const ThirdAmortization = {
+    year: 1,
+    month: 3,
+    amount: 5000,
+    type: TERM,
+  };
+  
+  return [FirstAmortization, SecondAmortization, ThirdAmortization];
 }
