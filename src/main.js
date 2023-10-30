@@ -317,5 +317,12 @@ function getAmortizationsData() {
     type: TERM,
   };
   
-  return [FirstAmortization, SecondAmortization, ThirdAmortization];
+  const FourthAmortization = {
+    year: 1,
+    month: 5,
+    amount: 4000,
+    type: TERM,
+  };
+  
+  return [FirstAmortization, SecondAmortization, ThirdAmortization, FourthAmortization];
 }
