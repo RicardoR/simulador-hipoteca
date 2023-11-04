@@ -37,7 +37,7 @@
           <span>Capital:</span>
           <input
             id="capital"
-            value="71000"
+            value="150000"
             onkeyup="mainFunction.check({target:this,type:'int',min:0});"
             size="7"
           />€
@@ -46,7 +46,7 @@
           <span>Plazo:</span>
           <input
             id="yearsField"
-            value="15"
+            value="25"
             onkeyup="mainFunction.check({target:this,type:'number',min:1,max:50});"
             size="2"
           />años
@@ -64,19 +64,19 @@
             <label>EURIBOR</label> +
             <input
               id="variableInterestField"
-              value="1"
+              value="1.5"
               style="width: 40px"
               onkeyup="mainFunction.check({target:this,type:'number',min:0});"
             />%
           </div>
           <div class="inicial">
             <div>
-              <label> <input type="checkbox" checked /> Periodo inicial fijo </label>
+              <label> <input type="checkbox" /> Periodo inicial fijo </label>
             </div>
             <div>
               <input
                 id="initialVariableInterestField"
-                value="2.25"
+                value="1.25"
                 style="width: 45px"
                 onkeyup="mainFunction.check({target:this,type:'number',min:0});"
               />
@@ -84,7 +84,7 @@
               <input
                 id="fixedMonthsField"
                 style="width: 40px"
-                value="60"
+                value="12"
                 onkeyup="mainFunction.check({target:this,type:'int',min:0});"
               />
               <label class="low">meses</label>
