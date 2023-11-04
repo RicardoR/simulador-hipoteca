@@ -10,6 +10,7 @@ const mainFunction = new (function () {
     type = 0;
   let euriborEvolutionUserData = [];
   let amortizationUserData = [];
+  let hasFixedInitialPeriod = false;
   this.init = function () {
     $('#typeField').change(function () {
       const selectedType = $(this).val();
@@ -51,9 +52,7 @@ const mainFunction = new (function () {
         </div>
       `;
 
-      if (euriborSerieListLenght) {
-        euriborEvolutionUserData[counter * 12] = euriborSerieList[counter];
-      }
+      euriborEvolutionUserData[counter * 12] = euriborSerieList[counter];
       counter++;
     }
 
@@ -75,7 +74,6 @@ const mainFunction = new (function () {
     let totalInterestMonthly = (interest = 0);
     let pendingAmount = total;
     let euriborValue = euriborEvolutionUserData[0];
-    let hasFixedInitialPeriod = $('.inicial input[type=checkbox]').is(':checked');
     let initialPendingAmount = `
       <tr><td>0</td><td>-</td><td>${pendingAmount.toFixed(2)}</td><td>-</td><td>-</td></tr>
     `;
@@ -187,7 +185,8 @@ const mainFunction = new (function () {
     fixedInterest = parseFloat($('#fixedInterestField').val());
     variableInterest = parseFloat($('#variableInterestField').val());
     initialVariableInterest = parseFloat($('#initialVariableInterestField').val());
-    fixedMonths = parseInt($('#fixedMonthsField').val());
+    hasFixedInitialPeriod = $('.inicial input[type=checkbox]').is(':checked');
+    fixedMonths = hasFixedInitialPeriod ?  parseInt($('#fixedMonthsField').val()) : 12;
   }
   function getPeriodInterest() {
     return interest / 12 / 100;
