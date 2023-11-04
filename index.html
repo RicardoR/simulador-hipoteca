@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>
-      Simula La Hipoteca de Ricardo — Calculadora de cuota y cuadro de amortización
+      Simula Tu Hipoteca — Calculadora de cuota y cuadro de amortización
     </title>
 
     <meta name="title" content="Simula tu hipoteca - Calcula cuota y cuadro de amortización"/>
@@ -22,7 +22,7 @@
   <body>
     <div class="wrapper">
       <div class="top">
-        <h1>Simulador de hipoteca de Ricardo</h1>
+        <h1>Simulador de hipoteca</h1>
         <div class="desc">
           <p>Herramienta de simulación de hipotecas que te permite calcular de manera precisa y fácil las amortizaciones parciales de tu préstamo hipotecario. </p>
           <p>Podrás visualizar cómo afecta el pago de amortizaciones parciales a la reducción de tu deuda hipotecaria y a la disminución de tus intereses. </p>
@@ -37,7 +37,7 @@
           <span>Capital:</span>
           <input
             id="capital"
-            value="150000"
+            value="71000"
             onkeyup="mainFunction.check({target:this,type:'int',min:0});"
             size="7"
           />€
@@ -46,7 +46,7 @@
           <span>Plazo:</span>
           <input
             id="yearsField"
-            value="25"
+            value="15"
             onkeyup="mainFunction.check({target:this,type:'number',min:1,max:50});"
             size="2"
           />años
@@ -64,19 +64,19 @@
             <label>EURIBOR</label> +
             <input
               id="variableInterestField"
-              value="1.5"
+              value="1"
               style="width: 40px"
               onkeyup="mainFunction.check({target:this,type:'number',min:0});"
             />%
           </div>
           <div class="inicial">
             <div>
-              <label> <input type="checkbox" /> Periodo inicial fijo </label>
+              <label> <input type="checkbox" checked /> Periodo inicial fijo </label>
             </div>
             <div>
               <input
                 id="initialVariableInterestField"
-                value="1.25"
+                value="2.25"
                 style="width: 45px"
                 onkeyup="mainFunction.check({target:this,type:'number',min:0});"
               />
@@ -84,7 +84,7 @@
               <input
                 id="fixedMonthsField"
                 style="width: 40px"
-                value="12"
+                value="60"
                 onkeyup="mainFunction.check({target:this,type:'int',min:0});"
               />
               <label class="low">meses</label>
