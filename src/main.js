@@ -1,7 +1,7 @@
 const TERM = 'Plazo';
 const FEE = 'Cuota';
 const START_DATE = new Date(2023, 4, 12);
-console.log(START_DATE);
+
 const mainFunction = new (function () {
   let total,
     months,

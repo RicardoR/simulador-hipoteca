@@ -61,7 +61,7 @@
         <div class="variable">
           <div>
             <span>Interés:</span>
-            <label>EURIBOR</label> +
+            <label for="variableInterestField">EURIBOR</label> +
             <input
               id="variableInterestField"
               value="1"
@@ -80,14 +80,14 @@
                 style="width: 45px"
                 onkeyup="mainFunction.check({target:this,type:'number',min:0});"
               />
-              <label class="low">% durante</label>
+              <label for="fixedMonthsField" class="low">% durante</label>
               <input
                 id="fixedMonthsField"
                 style="width: 40px"
                 value="60"
                 onkeyup="mainFunction.check({target:this,type:'int',min:0});"
               />
-              <label class="low">meses</label>
+              <label for="months" class="low">meses</label>
             </div>
           </div>
         </div>
