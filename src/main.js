@@ -329,6 +329,13 @@ function getAmortizationsData() {
     amount: 500,
     type: TERM,
   };
+
+  const SixthAmortization = {
+    year: 3,
+    month: 8,
+    amount: 5000,
+    type: TERM,
+  }
   
   return [
     FirstAmortization,
@@ -336,5 +343,6 @@ function getAmortizationsData() {
     ThirdAmortization,
     FourthAmortization,
     FifthAmortization,
+      SixthAmortization
   ];
 }
