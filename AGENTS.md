@@ -2,6 +2,8 @@
 
 Static Spanish-language mortgage simulator (no build system, no package manager, no tests, no CI). Plain HTML + jQuery loaded from `src/jquery.min.js`.
 
+> **Active work plan:** `plan/fix-issues-and-refactor.md`. It documents 7 verified bugs in the calculation logic, the required order of phases, and the branch strategy. Read it before touching `getTable`, `buildEuriborEvolutionSection`, or `getAmortizationsData`.
+
 ## Running
 
 - No build step. Open `index.html` directly or serve the repo root with any static server (e.g. `python3 -m http.server`).
