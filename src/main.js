@@ -1,5 +1,10 @@
 const mainFunction = new (function () {
   let euriborEvolutionUserData = [];
+  // Set when escenario.json cannot be loaded; kept visible across calculations.
+  let scenarioWarning = null;
+  const SCENARIO_WARNING =
+    'Aviso: no se pudo cargar escenario.json; se están usando los valores por defecto.';
+
   this.init = function () {
     $('#typeField').change(function () {
       const selectedType = $(this).val();
@@ -15,9 +20,65 @@ const mainFunction = new (function () {
       $(this).parent().toggleClass('open');
     });
     $('#calcular').click(mainFunction.getTable);
-    $('#addAmort').click(buildPartialAmortizations);
+    $('#addAmort').click(function () {
+      buildPartialAmortizations();
+    });
     buildEuriborEvolutionSection();
+    mainFunction.loadScenario();
   };
+
+  /**
+   * Phase 3: form defaults and seed amortizations live in /escenario.json, so
+   * each personal branch replaces that one data file instead of touching code.
+   * Fetched with a relative path (no leading slash) and applied on success;
+   * on failure the HTML defaults stay and a Spanish warning is shown.
+   */
+  this.loadScenario = function () {
+    if (typeof fetch != 'function') {
+      scenarioWarning = SCENARIO_WARNING;
+      renderWarnings([]);
+      return Promise.resolve();
+    }
+    return fetch('escenario.json')
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      })
+      .then(function (scenario) {
+        if (!scenario || typeof scenario != 'object') throw new Error('invalid scenario');
+        applyScenario(scenario);
+      })
+      .catch(function () {
+        scenarioWarning = SCENARIO_WARNING;
+        renderWarnings([]);
+      });
+  };
+  function applyScenario(scenario) {
+    if (typeof scenario.capital == 'number') $('#capital').val(scenario.capital);
+    if (typeof scenario.years == 'number') $('#yearsField').val(scenario.years);
+    if (scenario.type == 'fixed' || scenario.type == 'variable') {
+      $('#typeField')
+        .val(scenario.type == 'fixed' ? 'Fijo' : 'Variable')
+        .change();
+    }
+    if (typeof scenario.euriborSpread == 'number') $('#variableInterestField').val(scenario.euriborSpread);
+    if (typeof scenario.initialFixedInterest == 'number') $('#initialVariableInterestField').val(scenario.initialFixedInterest);
+    if (typeof scenario.fixedInterest == 'number') $('#fixedInterestField').val(scenario.fixedInterest);
+    if (typeof scenario.initialPeriodMonths == 'number') $('#fixedMonthsField').val(scenario.initialPeriodMonths);
+    if (typeof scenario.initialPeriodActive == 'boolean') {
+      $('.inicial input[type=checkbox]').prop('checked', scenario.initialPeriodActive);
+    }
+
+    // The term may have changed: rebuild the euribor sliders for the new length.
+    buildEuriborEvolutionSection();
+
+    $('#amort').empty();
+    if (Array.isArray(scenario.amortizations)) {
+      scenario.amortizations.forEach(function (amortization) {
+        buildPartialAmortizations(amortization);
+      });
+    }
+  }
 
   function buildEuriborEvolutionSection() {
     let euriborEvolutionTemplate = '';
@@ -96,12 +157,17 @@ const mainFunction = new (function () {
     $('.draw,.mortgage').show();
   }
   function renderWarnings(warnings) {
-    if (!warnings.length) {
+    const texts = [];
+    if (scenarioWarning) texts.push(scenarioWarning);
+    warnings.forEach(function (warning) {
+      texts.push(formatWarning(warning));
+    });
+    if (!texts.length) {
       $('#warningsContainer').html('').hide();
       return;
     }
     $('#warningsContainer')
-      .html(warnings.map(formatWarning).map((text) => `<div>${text}</div>`).join(''))
+      .html(texts.map((text) => `<div>${text}</div>`).join(''))
       .show();
   }
   function formatWarning(warning) {
@@ -171,16 +237,25 @@ const mainFunction = new (function () {
     });
     return amortizations;
   }
-  function buildPartialAmortizations() {
+  function buildPartialAmortizations(amortization) {
     const years = getControlsData().years;
+    const selectedYear =
+      amortization && typeof amortization.year == 'number' ? Math.min(Math.max(amortization.year, 1), years) : 1;
+    const selectedMonth =
+      amortization && typeof amortization.month == 'number' ? Math.min(Math.max(amortization.month, 1), 12) : 1;
+    const amount = amortization && typeof amortization.amount == 'number' ? amortization.amount : 1000;
+    const selectedTipo = amortization && amortization.type == 'payment' ? 'Cuota' : 'Plazo';
     let htmlAmortization = '<div class="am">Año:<select class="anyo" style="width:42px">';
-    htmlAmortization += buildYearOptions(years);
+    htmlAmortization += buildYearOptions(years, selectedYear);
     htmlAmortization += '</select><span>Mes:</span><select class="mes" style="width:42px">';
     for (let m = 1; m <= 12; m++) {
-      htmlAmortization += `<option>${m}</option>`;
+      htmlAmortization += `<option${m === selectedMonth ? ' selected' : ''}>${m}</option>`;
     }
     htmlAmortization +=
-      '</select><span>Capital:</span> <input size="5" onKeyUp="mainFunction.check({target:this,type:\'int\',min:0});" value="1000" class="capital" />€ <span>con reducción de <select style="width:68px" class="tipo"><option>Plazo</option><option>Cuota</option></select></span><a onclick="$(this).parent().remove(); mainFunction.changes();">Eliminar</a></div>';
+      `</select><span>Capital:</span> <input size="5" onKeyUp="mainFunction.check({target:this,type:\'int\',min:0});" value="${amount}" class="capital" />€ <span>con reducción de <select style="width:68px" class="tipo">` +
+      `<option${selectedTipo === 'Plazo' ? ' selected' : ''}>Plazo</option>` +
+      `<option${selectedTipo === 'Cuota' ? ' selected' : ''}>Cuota</option></select></span>` +
+      `<a onclick="$(this).parent().remove(); mainFunction.changes();">Eliminar</a></div>`;
     $('#amort').append(htmlAmortization);
     mainFunction.changes();
   }
