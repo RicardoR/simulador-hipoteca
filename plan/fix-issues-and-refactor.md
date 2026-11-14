@@ -37,19 +37,19 @@ Si React llega a master **antes** de extraer los datos a JSON, cada rama al merg
 `getTable` hoy calcula **y** escribe en el DOM (`$('#tableBody').html(...)`, `$('#mortgageContainer').html(...)`). Se parte en:
 
 ```js
-// src/lib/simulacion.js — sin DOM, sin jQuery, sin React
-calcularSimulacion(entrada) -> { filas, cuotaInicial, totalIntereses, avisos }
+// src/lib/simulation.js — sin DOM, sin jQuery, sin React
+calculateSimulation(input) -> { rows, initialPayment, totalInterest, warnings }
 
 // src/main.js (transitorio, Fase 0-1) — solo vuelca el resultado al DOM
 ```
 
 ```js
-entrada = {
-  capital, anios, tipo: 'fijo' | 'variable',
-  interesFijo, spreadEuribor, interesInicialFijo,
-  mesesPeriodoInicial, periodoInicialActivo,
+input = {
+  capital, years, type: 'fixed' | 'variable',
+  fixedInterest, euriborSpread, initialFixedInterest,
+  initialPeriodMonths, initialPeriodActive,
   euribor,                                  // array indexado por mes
-  amortizaciones: [{ anio, mes, cantidad, tipo: 'Plazo' | 'Cuota' }]
+  amortizations: [{ year, month, amount, type: 'term' | 'payment' }]
 }
 ```
 
@@ -60,7 +60,7 @@ Con **Vitest**.
 - `100k / 15a / 2.25%` → cuota `655.08`, saldo final `0.000000`
 - `100k / 15a / fijo 0.01%` → cuota `555.97`, intereses `75.44`
 
-> **`src/lib/simulacion.js` no se toca en las Fases 2-4.** Es la frontera estable entre el código jQuery y el React, y la que tiene tests.
+> **`src/lib/simulation.js` no se toca en las Fases 2-4.** Es la frontera estable entre el código jQuery y el React, y la que tiene tests.
 
 ---
 
@@ -70,13 +70,13 @@ Todos verificados ejecutando el código real de `getTable` con un DOM simulado, 
 
 | # | Bug | Fix | Test que lo demuestra |
 |---|---|---|---|
-| **1** | Interés 0% → **NaN en toda la tabla**. Alcanzable desde la UI: input de tipo fijo `min:0`, slider euríbor hasta `-0.5` con spread `min:0` | guard en la anualidad: `if (i === 0) return P / n` | `calcular(0%)` → cuota `555.56`, no NaN |
+| **1** | Interés 0% → **NaN en toda la tabla**. Alcanzable desde la UI: input de tipo fijo `min:0`, slider euríbor hasta `-0.5` con spread `min:0` | guard en la anualidad: `if (i === 0) return P / n` | `calculateSimulation(0%)` → cuota `555.56`, no NaN |
 | **2** | Dos amortizaciones en el mismo mes → **la 2ª borra a la 1ª**. `amortizationUserData[(año-1)*12 + mes-1]` es un array disperso | lista de amortizaciones, no array indexado por mes | `1000+2000` mismo mes ≠ `2000` |
 | **3** | Slider euríbor **muestra 5.00 y calcula 2.30**. `buildEuriborEvolutionSection` renderiza el valor del usuario (línea 52-54) y acto seguido lo sobrescribe con la serie por defecto (línea 65) | borrar el reinicio incondicional; en React el estado es la única fuente | tras rebuild, valor visible == valor calculado |
 | **4** | Amortización > saldo → **cuota e intereses negativos** (sin validación). `Cuota 150000` sobre `100000` → cuota `-327.54`, intereses `-93.75`, saldo `-49766` | `cantidad >= saldo` → saldo a 0, terminar, emitir aviso | `Cuota 150000` → saldo 0 + aviso |
 | **5** | Última fila con **saldo negativo**: el `break` ocurre *después* del append | cuota final clamped: `capital = min(capital, saldo)` | última fila siempre `>= 0` |
 | **6** | Reducción de "Plazo": `months -= Math.floor(c/cuota)` **ignora intereses** y hace doble trabajo junto a `pendingAmount -= c`. Desvío medido: código **173 meses / 20100€** vs referencia de banco **176 meses / 20447€** | tras `saldo -= c`: `mesesRestantes = solveN(saldo, cuota, tasa)` (cerrado: `n = -ln(1 - saldo·i/cuota) / ln(1+i)`) | cuota intacta, plazo derivado de la igualdad |
-| **7** | Amortización **fuera del plazo se ignora en silencio** (año 20 con plazo de 15 → resultado idéntico a no tener, sin aviso) | avisos en `avisos[]` + el select de año se recalcula con el plazo actual | año 20 con plazo 15 → aviso visible |
+| **7** | Amortización **fuera del plazo se ignora en silencio** (año 20 con plazo de 15 → resultado idéntico a no tener, sin aviso) | avisos en `warnings[]` + el select de año se recalcula con el plazo actual | año 20 con plazo 15 → aviso visible |
 
 **Los fixes 4, 5 y 6 comparten refactorización** — no se arreglan por separado.
 
@@ -109,15 +109,15 @@ cada mes:
 ```json
 {
   "capital": 100000,
-  "anios": 20,
-  "tipo": "variable",
-  "spread": 1,
-  "interesInicial": 2.25,
-  "interesFijo": 2.25,
-  "mesesPeriodoInicial": 60,
-  "periodoInicialActivo": true,
-  "amortizaciones": [
-    { "anio": 1, "mes": 1, "cantidad": 4000, "tipo": "Cuota" }
+  "years": 20,
+  "type": "variable",
+  "euriborSpread": 1,
+  "initialFixedInterest": 2.25,
+  "fixedInterest": 2.25,
+  "initialPeriodMonths": 60,
+  "initialPeriodActive": true,
+  "amortizations": [
+    { "year": 1, "month": 1, "amount": 4000, "type": "payment" }
   ]
 }
 ```
@@ -137,7 +137,7 @@ Se crea cuando el Tramo A esté mergeado. Nombre propuesto: `react-rewrite`.
 ### Fase 2 · React
 
 - **Vite + React** (nuevo `package.json`; no existe hoy). `npm run dev`, `npm run build`, `npm test`.
-- `src/lib/simulacion.js` **no se toca**: ya tiene sus tests.
+- `src/lib/simulation.js` **no se toca**: ya tiene sus tests.
 - Componentes: `FormularioDatos`, `Amortizaciones`, `EuriborEvolucion`, `ResultadoTabla`.
 - Un solo estado (`useReducer`) para todo. **Esto elimina de raíz los bugs 2 y 3**: hoy el estado vive duplicado entre variables del closure y el DOM, y las dos fuentes divergen.
 - **Mover `escenario.json` de la raíz a `public/`** (ver §Despliegue en Vercel): la URL `/escenario.json` no cambia, pero sin este paso Vite no lo incluiría en `dist/` y el `fetch` fallaría en producción.
