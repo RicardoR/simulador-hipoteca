@@ -14,6 +14,7 @@
     
     </script>
     <script async="" src="./src/jquery.min.js"></script>
+    <script defer="" src="./src/lib/simulation.js"></script>
     <script async="" src="./src/main.js"></script>
 	  <link href="./src/style.css" rel="stylesheet" type="text/css">
 
@@ -37,7 +38,7 @@
           <span>Capital:</span>
           <input
             id="capital"
-            value="80000"
+            value="150000"
             onkeyup="mainFunction.check({target:this,type:'int',min:0});"
             size="7"
           />€
@@ -46,7 +47,7 @@
           <span>Plazo:</span>
           <input
             id="yearsField"
-            value="30"
+            value="25"
             onkeyup="mainFunction.check({target:this,type:'number',min:1,max:50});"
             size="2"
           />años
@@ -64,19 +65,19 @@
             <label>EURIBOR</label> +
             <input
               id="variableInterestField"
-              value="1"
+              value="1.5"
               style="width: 40px"
               onkeyup="mainFunction.check({target:this,type:'number',min:0});"
             />%
           </div>
           <div class="inicial">
             <div>
-              <label> <input type="checkbox" checked /> Periodo inicial fijo </label>
+              <label> <input type="checkbox" /> Periodo inicial fijo </label>
             </div>
             <div>
               <input
                 id="initialVariableInterestField"
-                value="4.3"
+                value="1.25"
                 style="width: 45px"
                 onkeyup="mainFunction.check({target:this,type:'number',min:0});"
               />
@@ -84,7 +85,7 @@
               <input
                 id="fixedMonthsField"
                 style="width: 40px"
-                value="120"
+                value="12"
                 onkeyup="mainFunction.check({target:this,type:'int',min:0});"
               />
               <label class="low">meses</label>
@@ -118,6 +119,8 @@
       <div class="button">
         <a id="calcular">CALCULAR</a>
       </div>
+
+      <div class="warnings display-none" id="warningsContainer"></div>
 
       <div class="mortgage display-none">
         Tu cuota inicial: <span id="mortgageContainer"></span><br />

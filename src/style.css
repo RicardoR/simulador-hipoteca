@@ -173,6 +173,12 @@ select {
   text-align: center;
   font-size: 22px;
 }
+.warnings {
+  clear: both;
+  margin: 12px 0;
+  color: #e24a4a;
+  font-weight: 700;
+}
 .mortgage span {
   font-weight: 700;
   font-size: 26px;
