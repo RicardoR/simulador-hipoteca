@@ -22,7 +22,7 @@ const mainFunction = new (function () {
   function buildEuriborEvolutionSection() {
     let euriborEvolutionTemplate = '';
     const currentYear = new Date().getFullYear();
-    const years = getControlsData().anios;
+    const years = getControlsData().years;
     let euriborSerieList = getEuriborSerieList();
     let counter = 0;
     let euriborSerieListLenght = euriborEvolutionUserData.length == 0;
@@ -56,85 +56,85 @@ const mainFunction = new (function () {
   }
 
   this.getTable = function () {
-    const controles = getControlsData();
-    const resultado = calcularSimulacion({
-      capital: controles.capital,
-      anios: controles.anios,
-      tipo: controles.tipo,
-      interesFijo: controles.interesFijo,
-      spreadEuribor: controles.spreadEuribor,
-      interesInicialFijo: controles.interesInicialFijo,
-      mesesPeriodoInicial: controles.mesesPeriodoInicial,
-      periodoInicialActivo: controles.periodoInicialActivo,
+    const controls = getControlsData();
+    const result = calculateSimulation({
+      capital: controls.capital,
+      years: controls.years,
+      type: controls.type,
+      fixedInterest: controls.fixedInterest,
+      euriborSpread: controls.euriborSpread,
+      initialFixedInterest: controls.initialFixedInterest,
+      initialPeriodMonths: controls.initialPeriodMonths,
+      initialPeriodActive: controls.initialPeriodActive,
       euribor: euriborEvolutionUserData,
-      amortizaciones: getAmortizationsFromDOM(),
+      amortizations: getAmortizationsFromDOM(),
     });
-    paintResult(resultado);
+    renderResult(result);
   };
   this.changes = function () {
     $('.draw,.mortgage').hide();
   };
-  function paintResult(resultado) {
+  function renderResult(result) {
     const currentYear = new Date().getFullYear();
     let tableHtml = '';
-    resultado.filas.forEach(function (fila) {
-      tableHtml += paintRow(fila, currentYear);
+    result.rows.forEach(function (row) {
+      tableHtml += renderRow(row, currentYear);
     });
     $('#tableBody').html(tableHtml);
-    if (resultado.cuotaInicial != null) {
+    if (result.initialPayment != null) {
       $('#mortgageContainer')
-        .html(resultado.cuotaInicial.toFixed(2) + '€')
+        .html(result.initialPayment.toFixed(2) + '€')
         .parent()
         .show();
     }
-    $('#interestTotalContainer').html(resultado.totalIntereses.toFixed(2) + '€');
+    $('#interestTotalContainer').html(result.totalInterest.toFixed(2) + '€');
     $('.draw,.mortgage').show();
   }
-  function paintRow(fila, currentYear) {
-    switch (fila.tipo) {
-      case 'inicial':
+  function renderRow(row, currentYear) {
+    switch (row.kind) {
+      case 'initial':
         return `
-      <tr><td>0</td><td>-</td><td>${fila.saldo.toFixed(2)}</td><td>-</td><td>-</td></tr>
+      <tr><td>0</td><td>-</td><td>${row.balance.toFixed(2)}</td><td>-</td><td>-</td></tr>
     `;
-      case 'fin-periodo':
+      case 'period-end':
         return '<tr><td colspan="5" style="font-weight:bold; color:#e24a4a; text-align:center">Fin periodo inicial fijo</tr></td>';
-      case 'cabecera':
+      case 'header':
         return `
-          <tr><td colspan="5" style="font-weight:bold; text-align:center">AÑO ${currentYear + fila.anyoPrestamo} EURIBOR: ${fila.euribor} - AÑO ${fila.anyoPrestamo} DEL PRÉSTAMO</tr></td>
+          <tr><td colspan="5" style="font-weight:bold; text-align:center">AÑO ${currentYear + row.loanYear} EURIBOR: ${row.euribor} - AÑO ${row.loanYear} DEL PRÉSTAMO</tr></td>
         `;
-      case 'amortizacion':
+      case 'amortization':
         return `<tr> 
             <td colspan="5" style="font-weight:bold; text-align:center; color:#1E83CE">
-              Amort. parcial de ${fila.cantidad} € - reducción de ${fila.reduccion} <br>
+              Amort. parcial de ${row.amount} € - reducción de ${row.reduction == 'term' ? 'Plazo' : 'Cuota'} <br>
             </td>
           </tr>`;
-      case 'mes':
+      case 'month':
         return `<tr>
-          <td> ${fila.mes}</td>
-          <td> ${fila.cuota.toFixed(2)} </td>
-          <td> ${fila.saldo.toFixed(2)}</td>
-          <td> ${fila.capital.toFixed(2)}</td>
-          <td> ${fila.interes.toFixed(2)}</td>
+          <td> ${row.month}</td>
+          <td> ${row.payment.toFixed(2)} </td>
+          <td> ${row.balance.toFixed(2)}</td>
+          <td> ${row.principal.toFixed(2)}</td>
+          <td> ${row.interest.toFixed(2)}</td>
         </tr>`;
       default:
         return '';
     }
   }
   function getAmortizationsFromDOM() {
-    const amortizaciones = [];
+    const amortizations = [];
     $('.amort .am').each(function () {
       const amortizationContainer = $(this);
-      amortizaciones.push({
-        anio: parseInt(amortizationContainer.find('.anyo').val()),
-        mes: parseInt(amortizationContainer.find('.mes').val()),
-        cantidad: parseInt(amortizationContainer.find('.capital').val()),
-        tipo: amortizationContainer.find('.tipo').val(),
+      amortizations.push({
+        year: parseInt(amortizationContainer.find('.anyo').val()),
+        month: parseInt(amortizationContainer.find('.mes').val()),
+        amount: parseInt(amortizationContainer.find('.capital').val()),
+        type: amortizationContainer.find('.tipo').val() == 'Plazo' ? 'term' : 'payment',
       });
     });
-    return amortizaciones;
+    return amortizations;
   }
   function buildPartialAmortizations() {
-    const years = getControlsData().anios;
+    const years = getControlsData().years;
     let htmlAmortization = '<div class="am">Año:<select class="anyo" style="width:42px">';
     for (let m = 1; m <= years; m++) {
       htmlAmortization += `<option>${m}</option>`;
@@ -151,13 +151,13 @@ const mainFunction = new (function () {
   function getControlsData() {
     return {
       capital: parseInt($('#capital').val()),
-      anios: parseInt($('#yearsField').val()),
-      tipo: $('#typeField').val().toLowerCase(),
-      interesFijo: parseFloat($('#fixedInterestField').val()),
-      spreadEuribor: parseFloat($('#variableInterestField').val()),
-      interesInicialFijo: parseFloat($('#initialVariableInterestField').val()),
-      mesesPeriodoInicial: parseInt($('#fixedMonthsField').val()),
-      periodoInicialActivo: $('.inicial input[type=checkbox]').is(':checked'),
+      years: parseInt($('#yearsField').val()),
+      type: $('#typeField').val().toLowerCase() == 'fijo' ? 'fixed' : 'variable',
+      fixedInterest: parseFloat($('#fixedInterestField').val()),
+      euriborSpread: parseFloat($('#variableInterestField').val()),
+      initialFixedInterest: parseFloat($('#initialVariableInterestField').val()),
+      initialPeriodMonths: parseInt($('#fixedMonthsField').val()),
+      initialPeriodActive: $('.inicial input[type=checkbox]').is(':checked'),
     };
   }
   this.check = function (amortizationObject) {
