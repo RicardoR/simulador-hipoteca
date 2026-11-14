@@ -1,11 +1,18 @@
 {
-  "capital": 150000,
-  "years": 25,
+  "capital": 71000,
+  "years": 15,
   "type": "variable",
-  "euriborSpread": 1.5,
-  "initialFixedInterest": 1.25,
+  "euriborSpread": 1,
+  "initialFixedInterest": 2.25,
   "fixedInterest": 2.25,
-  "initialPeriodMonths": 12,
-  "initialPeriodActive": false,
-  "amortizations": []
+  "initialPeriodMonths": 60,
+  "initialPeriodActive": true,
+  "amortizations": [
+    { "year": 1, "month": 1, "amount": 4000, "type": "payment" },
+    { "year": 1, "month": 2, "amount": 6000, "type": "term" },
+    { "year": 1, "month": 3, "amount": 5000, "type": "term" },
+    { "year": 1, "month": 5, "amount": 4000, "type": "term" },
+    { "year": 2, "month": 4, "amount": 500, "type": "term" },
+    { "year": 3, "month": 8, "amount": 5000, "type": "term" }
+  ]
 }
