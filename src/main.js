@@ -27,10 +27,12 @@ const mainFunction = new (function () {
     let counter = 0;
     let euriborSerieListLenght = euriborEvolutionUserData.length == 0;
     for (let i = currentYear; i < currentYear + years; i++) {
-      let euriborValue =
-        euriborSerieListLenght || !euriborEvolutionUserData[counter * 12]
-          ? euriborSerieList[counter]
-          : euriborEvolutionUserData[counter * 12];
+      const storedValue = euriborEvolutionUserData[counter * 12];
+      // Bug #3: the stored value (user's or default) is the single source of
+      // truth for both the slider and the calculation. It used to be rendered
+      // and then unconditionally overwritten with the default series, so the
+      // slider showed 5.00 while the table calculated with 2.30.
+      const euriborValue = typeof storedValue == 'number' ? storedValue : euriborSerieList[counter];
 
       euriborEvolutionTemplate += `
         <div year="${i}">
@@ -41,7 +43,9 @@ const mainFunction = new (function () {
         </div>
       `;
 
-      euriborEvolutionUserData[counter * 12] = euriborSerieList[counter];
+      if (typeof storedValue != 'number') {
+        euriborEvolutionUserData[counter * 12] = euriborSerieList[counter];
+      }
       counter++;
     }
 
@@ -88,7 +92,26 @@ const mainFunction = new (function () {
         .show();
     }
     $('#interestTotalContainer').html(result.totalInterest.toFixed(2) + '€');
+    renderWarnings(result.warnings);
     $('.draw,.mortgage').show();
+  }
+  function renderWarnings(warnings) {
+    if (!warnings.length) {
+      $('#warningsContainer').html('').hide();
+      return;
+    }
+    $('#warningsContainer')
+      .html(warnings.map(formatWarning).map((text) => `<div>${text}</div>`).join(''))
+      .show();
+  }
+  function formatWarning(warning) {
+    if (warning.type == 'amortization-out-of-term') {
+      return `Aviso: la amortización de ${warning.amount} € del año ${warning.year}, mes ${warning.month}, está fuera del plazo de ${warning.termYears} años y no se ha tenido en cuenta.`;
+    }
+    if (warning.type == 'amortization-exceeds-balance') {
+      return `Aviso: la amortización de ${warning.amount} € del año ${warning.year}, mes ${warning.month}, supera el saldo pendiente (${warning.balance.toFixed(2)} €): el préstamo termina en ese mes.`;
+    }
+    return '';
   }
   function renderRow(row, currentYear) {
     switch (row.kind) {
@@ -120,6 +143,21 @@ const mainFunction = new (function () {
         return '';
     }
   }
+  function buildYearOptions(years, selectedYear) {
+    const selected = selectedYear == null ? null : Math.min(Math.max(selectedYear, 1), years);
+    let options = '';
+    for (let m = 1; m <= years; m++) {
+      options += `<option${m === selected ? ' selected' : ''}>${m}</option>`;
+    }
+    return options;
+  }
+  function rebuildAmortizationYearSelects() {
+    const years = getControlsData().years;
+    $('.amort .am').each(function () {
+      const select = $(this).find('.anyo');
+      select.html(buildYearOptions(years, parseInt(select.val())));
+    });
+  }
   function getAmortizationsFromDOM() {
     const amortizations = [];
     $('.amort .am').each(function () {
@@ -136,9 +174,7 @@ const mainFunction = new (function () {
   function buildPartialAmortizations() {
     const years = getControlsData().years;
     let htmlAmortization = '<div class="am">Año:<select class="anyo" style="width:42px">';
-    for (let m = 1; m <= years; m++) {
-      htmlAmortization += `<option>${m}</option>`;
-    }
+    htmlAmortization += buildYearOptions(years);
     htmlAmortization += '</select><span>Mes:</span><select class="mes" style="width:42px">';
     for (let m = 1; m <= 12; m++) {
       htmlAmortization += `<option>${m}</option>`;
@@ -170,6 +206,8 @@ const mainFunction = new (function () {
     }
     if (checkResult && amortizationObject.max == 50) {
       buildEuriborEvolutionSection();
+      // Bug #7: the amortization year select follows the current term.
+      rebuildAmortizationYearSelects();
     }
   };
 
