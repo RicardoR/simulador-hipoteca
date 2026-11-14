@@ -4,6 +4,9 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// The scenario under test: this file is data, so personal branches only change
+// it and the suite keeps passing there.
+import scenarioFile from '../escenario.json';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -245,11 +248,26 @@ describe('phase 3 — escenario.json', () => {
 
       const doc = window.document;
       expect(doc.getElementById('warningsContainer').textContent).not.toContain('escenario.json');
-      expect(doc.getElementById('capital').value).toBe('150000'); // value from escenario.json
-      expect(doc.getElementById('yearsField').value).toBe('25');
-      expect(doc.getElementById('typeField').value).toBe('Variable');
-      expect(doc.querySelectorAll('#euribor input[type=range]').length).toBe(25);
-      expect(doc.querySelectorAll('#amort .am')).toHaveLength(0);
+      // values come from the branch's own escenario.json
+      expect(doc.getElementById('capital').value).toBe(String(scenarioFile.capital));
+      expect(doc.getElementById('yearsField').value).toBe(String(scenarioFile.years));
+      expect(doc.getElementById('typeField').value).toBe(scenarioFile.type === 'fixed' ? 'Fijo' : 'Variable');
+      expect(doc.querySelectorAll('#euribor input[type=range]').length).toBe(scenarioFile.years);
+      expect(doc.querySelectorAll('#amort .am')).toHaveLength(scenarioFile.amortizations.length);
+      if (scenarioFile.amortizations.length) {
+        const row = doc.querySelector('#amort .am');
+        expect(row.querySelector('.anyo').value).toBe(String(scenarioFile.amortizations[0].year));
+        expect(row.querySelector('.mes').value).toBe(String(scenarioFile.amortizations[0].month));
+        expect(row.querySelector('.capital').value).toBe(String(scenarioFile.amortizations[0].amount));
+        expect(row.querySelector('.tipo').value).toBe(
+          scenarioFile.amortizations[0].type === 'payment' ? 'Cuota' : 'Plazo'
+        );
+      }
+
+      // and the simulation starts from the scenario's capital
+      doc.getElementById('calcular').click();
+      const firstCell = doc.querySelectorAll('#tableBody tr')[0].querySelectorAll('td')[2];
+      expect(Number(firstCell.textContent)).toBe(scenarioFile.capital);
     } finally {
       server.close();
       if (dom) dom.window.close();
