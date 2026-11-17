@@ -123,6 +123,7 @@ describe('bug #7 — amortization outside the term', () => {
 
 describe('phase 3 — escenario.json', () => {
   const scenario = {
+    startDate: '2023-06-01',
     capital: 99999,
     years: 10,
     type: 'fixed',
@@ -157,6 +158,9 @@ describe('phase 3 — escenario.json', () => {
       expect(doc.querySelector('.inicial input[type=checkbox]').checked).toBe(true);
       expect(doc.querySelector('.fijo').style.display).not.toBe('none');
       expect(doc.querySelector('.variable').style.display).toBe('none');
+
+      // year labels count from the scenario's startDate, not from today
+      expect(doc.querySelector('#euribor .year').textContent).toBe('2023');
 
       const row = doc.querySelector('#amort .am');
       expect(row.querySelector('.anyo').value).toBe('1');
@@ -248,6 +252,11 @@ describe('phase 3 — escenario.json', () => {
 
       const doc = window.document;
       expect(doc.getElementById('warningsContainer').textContent).not.toContain('escenario.json');
+      // year labels count from the scenario's startDate (or from today if absent)
+      const expectedStartYear = scenarioFile.startDate
+        ? new Date(scenarioFile.startDate).getFullYear()
+        : new Date().getFullYear();
+      expect(doc.querySelector('#euribor .year').textContent).toBe(String(expectedStartYear));
       // values come from the branch's own escenario.json
       expect(doc.getElementById('capital').value).toBe(String(scenarioFile.capital));
       expect(doc.getElementById('yearsField').value).toBe(String(scenarioFile.years));
@@ -268,6 +277,13 @@ describe('phase 3 — escenario.json', () => {
       doc.getElementById('calcular').click();
       const firstCell = doc.querySelectorAll('#tableBody tr')[0].querySelectorAll('td')[2];
       expect(Number(firstCell.textContent)).toBe(scenarioFile.capital);
+
+      // the first EURIBOR header also counts from the start year: it comes at
+      // the end of the initial fixed period, or after the first year without one
+      const header = [...doc.querySelectorAll('#tableBody tr')].find((tr) => tr.textContent.includes('EURIBOR:'));
+      expect(header).toBeDefined();
+      const expectedLoanYear = scenarioFile.initialPeriodActive ? scenarioFile.initialPeriodMonths / 12 : 1;
+      expect(header.textContent).toContain(`AÑO ${expectedStartYear + expectedLoanYear} EURIBOR`);
     } finally {
       server.close();
       if (dom) dom.window.close();
