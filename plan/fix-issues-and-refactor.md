@@ -4,6 +4,8 @@ Plan de trabajo para `simulador-hipoteca`: corregir los bugs de cálculo y lógi
 
 Rama de trabajo: **`fix-issues`** (parte de master `6161fe3`, limpia).
 
+> **Estado (Tramo B):** Tramo A está mergeado en master (PR #3 + `escenario.json` en la raíz y `startDate`). El Tramo B se está implementando en la rama **`react-rewrite`** desde master: Vite + React (Fase 2), `escenario.json` movido a `public/`, `vercel.json` con el build de Vercel, y Fase 4 (borrar `src/main.js`, `src/jquery.min.js`, handlers inline, override de `parseInt`). `test/ui.test.js` se sustituye por `test/App.test.jsx` (Testing Library); `test/simulation.test.js` no se toca.
+
 ---
 
 ## Estrategia: dos tramos
