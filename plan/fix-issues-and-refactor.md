@@ -124,6 +124,7 @@ cada mes:
 
 - **Ubicación: raíz del repo** (`/escenario.json`), no `public/`. En el Tramo A no hay build, así que `public/` se serviría como `/public/escenario.json` y la URL sería distinta. En la Fase 2 se mueve a `public/escenario.json`, que Vite sirve en la raíz de `dist/` → **misma URL, `/escenario.json`**.
 - **Se edita sin recompilar.** Es el punto de la Fase 3.
+- **`startDate` (opcional, formato ISO `AAAA-MM-DD`)**: fija el año desde el que cuentan las etiquetas de año (sliders de euríbor y cabeceras de la tabla); si no está, se usa el año en curso. Sustituye al `START_DATE` hardcodeado de las ramas personales (hipoteca empezada en 2023).
 - `fetch` con ruta relativa (`escenario.json`, sin barra inicial).
 - Fallback a valores por defecto + aviso si falla.
 - Cada rama personal reemplaza este archivo por el suyo.
