@@ -2,8 +2,15 @@ const mainFunction = new (function () {
   let euriborEvolutionUserData = [];
   // Set when escenario.json cannot be loaded; kept visible across calculations.
   let scenarioWarning = null;
+  // Year the loan starts counting from (escenario.json `startDate`); labels in
+  // the euribor sliders and the table headers derive from it instead of today.
+  let scenarioStartYear = null;
   const SCENARIO_WARNING =
     'Aviso: no se pudo cargar escenario.json; se están usando los valores por defecto.';
+
+  function getStartYear() {
+    return scenarioStartYear != null ? scenarioStartYear : new Date().getFullYear();
+  }
 
   this.init = function () {
     $('#typeField').change(function () {
@@ -54,6 +61,10 @@ const mainFunction = new (function () {
       });
   };
   function applyScenario(scenario) {
+    if (typeof scenario.startDate == 'string') {
+      const startDate = new Date(scenario.startDate);
+      if (!isNaN(startDate.getTime())) scenarioStartYear = startDate.getFullYear();
+    }
     if (typeof scenario.capital == 'number') $('#capital').val(scenario.capital);
     if (typeof scenario.years == 'number') $('#yearsField').val(scenario.years);
     if (scenario.type == 'fixed' || scenario.type == 'variable') {
@@ -82,7 +93,7 @@ const mainFunction = new (function () {
 
   function buildEuriborEvolutionSection() {
     let euriborEvolutionTemplate = '';
-    const currentYear = new Date().getFullYear();
+    const currentYear = getStartYear();
     const years = getControlsData().years;
     let euriborSerieList = getEuriborSerieList();
     let counter = 0;
@@ -140,7 +151,7 @@ const mainFunction = new (function () {
     $('.draw,.mortgage').hide();
   };
   function renderResult(result) {
-    const currentYear = new Date().getFullYear();
+    const currentYear = getStartYear();
     let tableHtml = '';
     result.rows.forEach(function (row) {
       tableHtml += renderRow(row, currentYear);
