@@ -231,12 +231,8 @@
 }
 
 .amort-row .amount-field {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-}
-
-.amort-row .amount-field > span {
-  padding-bottom: var(--space-xs);
+  grid-template-columns: auto minmax(7rem, 1fr) auto;
+  align-items: center;
 }
 
 .amort-row .reduction-field {
