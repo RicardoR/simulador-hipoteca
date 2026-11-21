@@ -12,14 +12,14 @@ Rama de trabajo: **`redesign-app`** (creada desde master `dc62dd9`, con el Tramo
 
 | Fase | Tarea | Estado |
 |---|---|---|
-| **0 · Instalar Hallmark** | `npx skills add nutlope/hallmark` (sin `-g`, en el repo) y commitear | ⬜ Pendiente |
-| | Leer su `SKILL.md`: dónde cae, cómo se invoca en OpenCode, cómo maneja React+Vite (¿escribe en `style.css`/JSX o genera HTML aparte?) | ⬜ Pendiente |
-| | Decidir `puppeteer-core` + Chrome para `sloplint --render` (sin ello solo corren checks estáticos) | ⬜ Pendiente |
-| | Línea en `AGENTS.md`: *"para diseño, usar hallmark"* | ⬜ Pendiente |
-| **1 · Alcance** | Delimitar qué se toca y qué no (ver abajo) — decisión mía | ⬜ Pendiente |
+| **0 · Instalar Hallmark** | `npx skills add nutlope/hallmark` (sin `-g`, en el repo) y commitear | ✅ Hecho (`75d99e2`) |
+| | Leer su `SKILL.md`: dónde cae, cómo se invoca en OpenCode, cómo maneja React+Vite (¿escribe en `style.css`/JSX o genera HTML aparte?) | ✅ Hecho — ver "Hallmark en nuestro stack" abajo |
+| | Decidir `puppeteer-core` + Chrome para `sloplint --render` (sin ello solo corren checks estáticos) | ✅ Hecho (`460e407`) — local como devDependency; Chrome ya en la máquina |
+| | Línea en `AGENTS.md`: *"para diseño, usar hallmark"* | ✅ Hecho (`680ab32`) |
+| **1 · Alcance** | Delimitar qué se toca y qué no (ver abajo) — decisión mía | ✅ Hecho — fijado abajo |
 | **2 · Tema vs custom** | Mirar los 50 temas en usehallmark.com y elegir tema concreto o modo custom — decisión del propietario | ⬜ Pendiente |
-| **3 · Rediseñar** | Aplicar el rediseño en `redesign-app` siguiendo lo que dictamine Hallmark | ⬜ Pendiente |
-| **4 · Puerta de verificación** | `npm test` → `npm run build` → `sloplint` en verde → revisar en navegador → push → **deploy en Vercel** → PR | ⬜ Pendiente |
+| **3 · Rediseñar** | `--before` con dev server → rediseño siguiendo Hallmark → sweep `--kept` | ⬜ Pendiente |
+| **4 · Puerta de verificación** | `npm test` → `npm run build` → `sloplint --render` en verde → revisar en navegador → push → **deploy en Vercel** → PR | ⬜ Pendiente |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
@@ -29,16 +29,15 @@ Rama de trabajo: **`redesign-app`** (creada desde master `dc62dd9`, con el Tramo
 
 Instalación **en el proyecto (sin `-g`)** y commiteada, para que cualquiera que clone (incluidas las ramas personales) lo tenga y quede versionado.
 
-1. `npx skills add nutlope/hallmark` → verificar dónde cae y añadirlo a git.
-2. **Leer `SKILL.md` antes de diseñar nada.** Puntos a confirmar:
-   - Cómo se invoca en OpenCode (`/hallmark <prompt>` o nombrándolo).
-   - Cómo materializa el resultado en un stack **React + Vite** (sus builds son HTML/CSS autocontenidos; lo suyo es que rediseñe CSS/estructura manteniendo el JSX — confirmarlo).
-   - Los gates: Floor (nunca se envía roto), Reflex (defaults de modelo, justificables), Finish (craft, no bloquea).
-3. Decidir si instalamos `puppeteer-core` global + Chrome para `sloplint --render` (screenshots y checks a 8 anchos). Sin ello, solo checks estáticos.
-4. Añadir a `AGENTS.md` que para trabajo de diseño se usa hallmark.
-5. Commit: `chore: add hallmark design skill`.
+### Hallmark en nuestro stack (leído del `SKILL.md` + `references/`)
 
-> **Nota:** los checks de Hallmark con `--before`/`--kept` encajan con nuestra puerta: registran enlaces, campos, handlers y headings antes del rediseño y fallan si alguno desaparece.
+- **Invocación en OpenCode:** `/hallmark` (el skill ya está en la lista: `.agents/skills/hallmark`). Preguntas en texto plano, subagentes `@general` permitidos.
+- **Nuestro caso es un "app screen"** (una herramienta, no una landing): a *full depth* recomponen la pantalla dentro de su shell, **sin hero stage ni hero review**.
+- **Vite:** el tier de render va contra el dev server: `sloplint src/ --render --url http://localhost:5173/`. El tier estático lee también `.jsx` (detecta colores inline, `transition-all`, etc.).
+- **`redesign <path>`** = *full*: conserva contenido y wiring (campos, handlers, ids, tests), cambia sistema y composición. **En un redesign la stylesheet es suya para editar**; la regla *append-only* protege solo contra builds nuevos.
+- **`--before`** (registro inicial) y **`--kept`** (falla si algo desapareció): la contraparte de nuestra puerta.
+- **Puppeteer:** `puppeteer-core@25` como devDependency + Chrome del sistema (`/Applications/Google Chrome.app`). Sin Chrome en otra máquina, solo tier estático — nunca claim de un render que no corrió.
+- **Baseline estático (2026-11-21):** `30 FAIL · 19 REFLEX · 3 WARN` en `src/` — colores literales fuera de tokens, spacing fuera de la escala de 4px, contraste del botón a 2.26:1. Es el punto de partida, no una regresión.
 
 ## Fase 1 · Alcance (criterio del asistente)
 
