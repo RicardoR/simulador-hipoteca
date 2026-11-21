@@ -102,3 +102,24 @@ npm test          # 16 tests: simulación + UI
 npm run build     # errores de import/JSX + dist/
 node skills/hallmark/scripts/sloplint.mjs <ruta> --render   # lint de diseño (según Fase 0)
 ```
+
+---
+
+## Anexo · Mejoras extras
+
+Mejoras opcionales para una tarea posterior e independiente del rediseño ya commiteado. No implementadas todavía.
+
+### 1. Valor editable para cada año del Euríbor
+
+- Añadir un campo numérico junto a cada slider para introducir la tasa directamente.
+- Slider, campo y cálculo deben reflejar el mismo valor; reutilizar `euriborOverrides` y la acción `euribor/changed` como fuente de verdad, sin mantener dos valores válidos en paralelo.
+- Mantener los límites actuales (`-0.5` a `15`, paso `0.1`), mostrar la tasa con dos decimales y definir cómo tratar entradas vacías, parciales o fuera de rango antes de tocar el reducer.
+- Cubrir con tests la edición en ambos sentidos, la validación, el cambio de plazo y que la simulación use el último valor válido.
+- Alcance previsto: `src/components/EuriborEvolucion.jsx`, estilos y tests de UI; modificar `src/state.js` solo si el diseño de validación lo requiere. No cambiar `src/lib/simulation.js` salvo necesidad demostrada y tests específicos.
+
+### 2. Selectores con aspecto Almanac
+
+- Dar a los selectores una apariencia coherente con los campos del simulador: papel slate, filete, tipografía y chevrón propio.
+- Preferir un `<select>` nativo con estilos personalizados; conserva teclado, foco y accesibilidad del navegador. La lista desplegable puede seguir usando la presentación nativa del sistema operativo.
+- Si se busca una lista emergente totalmente personalizada, decidirlo aparte: requiere implementar y probar navegación por teclado, foco, Escape, selección y semántica para lectores de pantalla.
+- Probar los estados de foco y selección en móvil y escritorio, sin alterar valores, IDs ni handlers existentes.
