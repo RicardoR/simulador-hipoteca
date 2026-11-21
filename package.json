@@ -2,13 +2,24 @@
   "name": "simulador-hipoteca",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Simulador de hipoteca: cálculo de cuota y cuadro de amortización con euribor variable y amortizaciones parciales.",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
   "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^31.0.1",
+    "vite": "^7.1.0",
     "vitest": "^3.2.4"
   }
 }

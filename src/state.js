@@ -1,0 +1,309 @@
+/**
+ * Single source of truth for the React frontend: one reducer owns the form,
+ * the euribor overrides and the amortizations, so the value a slider shows is
+ * always the value the simulation calculates with (bug #3) and amortizations
+ * can never overwrite each other (bug #2).
+ *
+ * `src/lib/simulation.js` is imported for its side effect only (it exposes
+ * `globalThis.calculateSimulation`) and must not change: it is the stable
+ * boundary between the old jQuery code and React, covered by
+ * `test/simulation.test.js`.
+ */
+import './lib/simulation.js';
+
+const calculateSimulation = globalThis.calculateSimulation;
+
+/** Default euribor series, one value per loan year (50 = max term). */
+export const EURIBOR_SERIES = [
+  2.2, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
+  4.7, 4.6, 4.1, 3.9, 3.5, 3, 2.4, 2.2, 2.6, 3, 3.3, 3.5, 3.6, 3.8,
+  3.7, 3.8, 3.8, 3.9, 4.1, 4, 4.1, 4.1, 4.3, 4.3, 4.2, 4.3, 4.4, 4.5,
+  4.2, 4.3, 4.4, 4.1, 4.3, 4.5, 4.4, 4.1, 4, 3.7,
+];
+
+export const SCENARIO_WARNING =
+  'Aviso: no se pudo cargar escenario.json; se están usando los valores por defecto.';
+
+export const INVALID_FIELDS_WARNING =
+  'Aviso: hay campos con valores no válidos; revísalos en rojo antes de calcular.';
+
+/** HTML defaults — the same the static page had before the scenario loads. */
+const DEFAULT_FIELDS = {
+  capital: '150000',
+  years: '25',
+  startYear: String(new Date().getFullYear()),
+  type: 'variable',
+  fixedInterest: '2.25',
+  euriborSpread: '1.5',
+  initialFixedInterest: '1.25',
+  initialPeriodMonths: '12',
+  initialPeriodActive: false,
+};
+
+/**
+ * Field validation, ported from the old `check()` helpers:
+ * 'int' strips separators and requires a whole number, 'number' allows a
+ * decimal comma. Empty strings are invalid here (they used to slip through
+ * and reach the calculation as NaN).
+ */
+const FIELD_RULES = {
+  capital: { kind: 'int', min: 0 },
+  years: { kind: 'number', min: 1, max: 50 },
+  startYear: { kind: 'int', min: 1900, max: 2200 },
+  fixedInterest: { kind: 'number', min: 0 },
+  euriborSpread: { kind: 'number', min: 0 },
+  initialFixedInterest: { kind: 'number', min: 0 },
+  initialPeriodMonths: { kind: 'int', min: 0 },
+};
+
+export function parseIntField(value) {
+  const stripped = String(value).replace(/[.,\s]/g, '');
+  if (!/^\d+$/.test(stripped)) return NaN;
+  return parseInt(stripped, 10);
+}
+
+export function parseFloatField(value) {
+  const normalized = String(value).replace(',', '.');
+  if (normalized === '') return NaN;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+export function isValidField(name, value) {
+  const rule = FIELD_RULES[name];
+  if (!rule) return true;
+  const parsed = rule.kind === 'int' ? parseIntField(value) : parseFloatField(value);
+  if (!Number.isFinite(parsed)) return false;
+  if (rule.min !== undefined && parsed < rule.min) return false;
+  if (rule.max !== undefined && parsed > rule.max) return false;
+  return true;
+}
+
+export function isValidAmortizationAmount(value) {
+  return Number.isFinite(parseIntField(value)) && parseIntField(value) >= 0;
+}
+
+export function initialState() {
+  const invalid = {};
+  Object.keys(FIELD_RULES).forEach((name) => {
+    invalid[name] = !isValidField(name, DEFAULT_FIELDS[name]);
+  });
+  return {
+    fields: { ...DEFAULT_FIELDS },
+    invalid,
+    // Last valid numeric caches: the sliders/options derive from these so a
+    // half-typed field does not collapse the layout (the old page kept the
+    // last rebuild for the same reason).
+    termYears: parseInt(DEFAULT_FIELDS.years, 10),
+    startYear: parseInt(DEFAULT_FIELDS.startYear, 10),
+    euriborOverrides: {},
+    euriborOpen: false,
+    amortizations: [],
+    nextAmortizationId: 1,
+    scenarioWarning: null,
+    calcWarning: null,
+    result: null,
+  };
+}
+
+function applyScenario(state, scenario) {
+  const fields = { ...state.fields };
+  const invalid = { ...state.invalid };
+  let termYears = state.termYears;
+  let startYear = state.startYear;
+
+  const setField = (name, value) => {
+    fields[name] = value;
+    invalid[name] = !isValidField(name, value);
+  };
+
+  if (typeof scenario.capital === 'number') setField('capital', String(scenario.capital));
+  if (typeof scenario.years === 'number') {
+    setField('years', String(scenario.years));
+    if (!invalid.years) termYears = Math.trunc(parseFloatField(scenario.years));
+  }
+  if (typeof scenario.startDate === 'string') {
+    const startDate = new Date(scenario.startDate);
+    if (!isNaN(startDate.getTime())) {
+      setField('startYear', String(startDate.getFullYear()));
+      startYear = startDate.getFullYear();
+    }
+  }
+  if (scenario.type === 'fixed' || scenario.type === 'variable') {
+    setField('type', scenario.type);
+  }
+  if (typeof scenario.euriborSpread === 'number') setField('euriborSpread', String(scenario.euriborSpread));
+  if (typeof scenario.initialFixedInterest === 'number') {
+    setField('initialFixedInterest', String(scenario.initialFixedInterest));
+  }
+  if (typeof scenario.fixedInterest === 'number') setField('fixedInterest', String(scenario.fixedInterest));
+  if (typeof scenario.initialPeriodMonths === 'number') {
+    setField('initialPeriodMonths', String(scenario.initialPeriodMonths));
+  }
+  if (typeof scenario.initialPeriodActive === 'boolean') {
+    setField('initialPeriodActive', scenario.initialPeriodActive);
+  }
+
+  const amortizations = [];
+  let nextId = state.nextAmortizationId;
+  if (Array.isArray(scenario.amortizations)) {
+    scenario.amortizations.forEach((amortization) => {
+      if (!amortization || typeof amortization !== 'object') return;
+      const year = Number(amortization.year);
+      amortizations.push({
+        id: nextId++,
+        // The year is stored as given when it is a plausible year: if it falls
+        // outside the term the select still shows it (with the term's options
+        // around it) and the simulation reports it as out of term instead of
+        // silently clamping (bug #7).
+        year: Number.isFinite(year) && year >= 1 ? Math.trunc(year) : 1,
+        month: Math.min(Math.max(Number(amortization.month) || 1, 1), 12),
+        amount:
+          typeof amortization.amount === 'number' ? String(amortization.amount) : DEFAULT_AMORTIZATION.amount,
+        type: amortization.type === 'payment' ? 'payment' : 'term',
+        invalidAmount: false,
+      });
+    });
+  }
+
+  return {
+    ...state,
+    fields,
+    invalid,
+    termYears,
+    startYear,
+    amortizations,
+    nextAmortizationId: nextId,
+    result: null,
+    calcWarning: null,
+  };
+}
+
+const DEFAULT_AMORTIZATION = { amount: '1000' };
+
+/** Sparse euribor array for the simulation: one entry per loan year. */
+function buildEuriborInput(state) {
+  const euribor = [];
+  for (let i = 0; i < state.termYears; i++) {
+    const index = i * 12;
+    const override = state.euriborOverrides[index];
+    euribor[index] = typeof override === 'number' ? override : EURIBOR_SERIES[i] ?? 0;
+  }
+  return euribor;
+}
+
+function buildSimulationInput(state) {
+  return {
+    capital: parseIntField(state.fields.capital),
+    years: state.termYears,
+    type: state.fields.type,
+    fixedInterest: parseFloatField(state.fields.fixedInterest),
+    euriborSpread: parseFloatField(state.fields.euriborSpread),
+    initialFixedInterest: parseFloatField(state.fields.initialFixedInterest),
+    initialPeriodMonths: parseIntField(state.fields.initialPeriodMonths),
+    initialPeriodActive: state.fields.initialPeriodActive,
+    euribor: buildEuriborInput(state),
+    amortizations: state.amortizations.map((amortization) => ({
+      year: amortization.year,
+      month: amortization.month,
+      amount: parseIntField(amortization.amount),
+      type: amortization.type,
+    })),
+  };
+}
+
+export function hasInvalidFields(state) {
+  if (Object.values(state.invalid).some(Boolean)) return true;
+  return state.amortizations.some((amortization) => amortization.invalidAmount);
+}
+
+/** Every data change invalidates the last result: no stale tables. */
+function withFreshResult(state) {
+  return { ...state, result: null, calcWarning: null };
+}
+
+/** Spanish texts for the warnings emitted by `calculateSimulation`. */
+export function formatWarning(warning) {
+  if (warning.type === 'amortization-out-of-term') {
+    return `Aviso: la amortización de ${warning.amount} € del año ${warning.year}, mes ${warning.month}, está fuera del plazo de ${warning.termYears} años y no se ha tenido en cuenta.`;
+  }
+  if (warning.type === 'amortization-exceeds-balance') {
+    return `Aviso: la amortización de ${warning.amount} € del año ${warning.year}, mes ${warning.month}, supera el saldo pendiente (${warning.balance.toFixed(2)} €): el préstamo termina en ese mes.`;
+  }
+  return '';
+}
+
+export function reducer(state, action) {
+  switch (action.type) {
+    case 'scenario/loaded':
+      return applyScenario(state, action.scenario);
+
+    case 'scenario/failed':
+      return { ...state, scenarioWarning: SCENARIO_WARNING };
+
+    case 'field/changed': {
+      const { name, value } = action;
+      const fields = { ...state.fields, [name]: value };
+      const invalid = { ...state.invalid, [name]: !isValidField(name, value) };
+      const next = withFreshResult({ ...state, fields, invalid });
+      if (name === 'years' && !invalid.years) {
+        next.termYears = Math.trunc(parseFloatField(value));
+      }
+      if (name === 'startYear' && !invalid.startYear) {
+        next.startYear = parseIntField(value);
+      }
+      return next;
+    }
+
+    case 'euribor/changed':
+      return withFreshResult({
+        ...state,
+        euriborOverrides: { ...state.euriborOverrides, [action.index]: action.value },
+      });
+
+    case 'euribor/toggled':
+      return { ...state, euriborOpen: !state.euriborOpen };
+
+    case 'amortization/added': {
+      const id = state.nextAmortizationId;
+      return withFreshResult({
+        ...state,
+        nextAmortizationId: id + 1,
+        amortizations: [
+          ...state.amortizations,
+          { id, year: 1, month: 1, amount: DEFAULT_AMORTIZATION.amount, type: 'term', invalidAmount: false },
+        ],
+      });
+    }
+
+    case 'amortization/updated': {
+      const amortizations = state.amortizations.map((amortization) => {
+        if (amortization.id !== action.id) return amortization;
+        const updated = { ...amortization, ...action.patch };
+        if ('amount' in action.patch) updated.invalidAmount = !isValidAmortizationAmount(action.patch.amount);
+        return updated;
+      });
+      return withFreshResult({ ...state, amortizations });
+    }
+
+    case 'amortization/removed':
+      return withFreshResult({
+        ...state,
+        amortizations: state.amortizations.filter((amortization) => amortization.id !== action.id),
+      });
+
+    case 'calculated': {
+      if (hasInvalidFields(state)) {
+        return { ...state, result: null, calcWarning: INVALID_FIELDS_WARNING };
+      }
+      return {
+        ...state,
+        result: calculateSimulation(buildSimulationInput(state)),
+        calcWarning: null,
+      };
+    }
+
+    default:
+      return state;
+  }
+}
