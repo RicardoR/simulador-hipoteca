@@ -17,7 +17,7 @@ Rama de trabajo: **`redesign-app`** (creada desde master `dc62dd9`, con el Tramo
 | | Decidir `puppeteer-core` + Chrome para `sloplint --render` (sin ello solo corren checks estáticos) | ✅ Hecho (`460e407`) — local como devDependency; Chrome ya en la máquina |
 | | Línea en `AGENTS.md`: *"para diseño, usar hallmark"* | ✅ Hecho (`680ab32`) |
 | **1 · Alcance** | Delimitar qué se toca y qué no (ver abajo) — decisión mía | ✅ Hecho — fijado abajo |
-| **2 · Tema vs custom** | Mirar los 50 temas en usehallmark.com y elegir tema concreto o modo custom — decisión del propietario | ⬜ Pendiente |
+| **2 · Tema vs custom** | Mirar los 50 temas en usehallmark.com y elegir tema concreto o modo custom — decisión del propietario | ✅ Hecho — opción 3: deal `r0` (seed `spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0`), elegido **Almanac** (1/3) |
 | **3 · Rediseñar** | `--before` con dev server → rediseño siguiendo Hallmark → sweep `--kept` | ⬜ Pendiente |
 | **4 · Puerta de verificación** | `npm test` → `npm run build` → `sloplint --render` en verde → revisar en navegador → push → **deploy en Vercel** → PR | ⬜ Pendiente |
 
@@ -56,6 +56,15 @@ Instalación **en el proyecto (sin `-g`)** y commiteada, para que cualquiera que
 
 - Mirar los 50 temas en [usehallmark.com](https://www.usehallmark.com) y elegir: un tema concreto o modo **custom** (diseño desde un prompt, sin receta de tema).
 - Los temas son "materiales", no planes: dos prompts en el mismo tema dan páginas distintas.
+
+## Fase 2 · Tema vs custom — ✅ Almanac (1/3)
+
+Tercera opción (deal y elegir entre 3): `theme.mjs deal --genre editorial` con seed `spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0` repartió **Almanac / Broadside / Carnival**. Elegido **Almanac**:
+
+- **Por qué:** material de tabla — "cool slate stock, cifras en mono alineadas al decimal, dos grosores de filete". Nuestro producto *es* una tabla de números; el registro de "libro de referencia / extracto" transmite precisión, que es lo que busca quien calcula su hipoteca. Pictured as **Workbench** (herramienta de trabajo), que es lo que es la app.
+- **Descartados:** Broadside (cartel de subasta, ruidoso) y Carnival (demasiado lúdico para finanzas).
+- **Tokens clave:** paper slate `oklch(84% 0.012 245)`, ink azul-negro, magenta de gráfico `oklch(45% 0.180 350)` (<5% de la pantalla), Hanken Grotesk (heads) + Newsreader (prosa) + IBM Plex Mono (cifras `tabular-nums`), esquinas rectas, **sin sombras ni cards**, dos pesos de filete.
+- **Do-nots:** nunca hot pink/violeta, nunca papel cálido, nunca card encajada ni sombra, cifras comparables siempre mono tabular alineadas a la derecha.
 
 ## Fase 3 · Rediseñar
 
