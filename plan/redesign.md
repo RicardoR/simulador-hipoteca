@@ -18,24 +18,21 @@ Rama de trabajo: **`redesign-app`** (creada desde master `dc62dd9`, con el Tramo
 | | Línea en `AGENTS.md`: *"para diseño, usar hallmark"* | ✅ Hecho (`680ab32`) |
 | **1 · Alcance** | Delimitar qué se toca y qué no (ver abajo) — decisión mía | ✅ Hecho — fijado abajo |
 | **2 · Tema vs custom** | Mirar los 50 temas en usehallmark.com y elegir tema concreto o modo custom — decisión del propietario | ✅ Hecho — opción 3: deal `r0` (seed `spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0`), elegido **Almanac** (1/3) |
-| **3 · Rediseñar** | `--before` con dev server → rediseño siguiendo Hallmark → sweep `--kept` | 🔵 En curso — `--before` registrado; falta el rediseño |
-| **4 · Puerta de verificación** | `npm test` → `npm run build` → `sloplint --render` en verde → revisar en navegador → push → **deploy en Vercel** → PR | ⬜ Pendiente |
+| **3 · Rediseñar** | `--before` con dev server → rediseño siguiendo Hallmark → sweep `--kept` | ✅ Hecho — Almanac aplicado a la pantalla de trabajo; wiring conservado |
+| **4 · Puerta de verificación** | `npm test` → `npm run build` → `sloplint --render` en verde → revisar en navegador → push → **deploy en Vercel** → PR | 🔵 En curso — tests, build, render y finish review completados; queda revisión del propietario y deploy |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
 ### Estado al parar (sesión 2026-11-21)
 
-- **Rama:** `redesign-app`, al día con `origin` salvo los commits de esta sesión (sin push — el usuario verifica antes).
-- **Fase 0 ✅ y Fase 2 ✅** (commits `75d99e2`, `460e407`, `680ab32`, `9347815`, `84589da`). Tema: **Almanac** (deal seed `spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0`).
-- **`--before` registrado** con dev server en `localhost:5173`:
-  - `.hallmark/before.json` — 33 campos, 12 handlers, 1 página: es lo que vigila `--kept`.
-  - `.hallmark/before.txt` + 5 screenshots en `.hallmark/before/` (1280/1440/1920 fold, 1440 y 375 full).
-  - **Baseline: 33 FAIL · 20 REFLEX · 3 WARN** — FAILs: colores literales (25 en JSX inline + `#fff`), sin `:focus-visible`, scroll horizontal a 768/1024 (wrapper 1240px), contraste 2.38:1, texto tapado por `.button`.
-- **Pendiente inmediato (primer paso de la sesión nueva):** la **lectura de 4 líneas** del Before (para qué es la página / qué funciona y se queda / lo que huele a generado / lo roto) y el **Picks block** con las filas de redesign (`Redesign · full · app screen`, `Before · …`, `Keeps · …`, `Files · edit/ create/ delete`), y luego el mensaje "ask" de Hallmark (3 preguntas: qué debe conservarse, qué está mal, material nuevo) — o "go ahead" si el propietario lo salta.
-  - ⚠️ Nota: al leer los PNG desde la herramienta de imágenes hubo resultados inconsistentes (imágenes de otros temas en su lugar); los ficheros son buenos (verificado por md5/tamaño). Si hace falta mirarlos, re-leer o usar `open`.
-- **Tras la lectura:** `theme.mjs scaffold almanac --dealt "1/3, seed …" --redesign full` (escribe `tokens.css` + `base.css` junto a `src/style.css`), construir, y sweep `sloplint src/ --genre editorial --render --url http://localhost:5173/ --kept`.
-- **Dev server:** se paró al acabar; la sesión nueva lo arranca con `npm run dev` (puerto 5173).
-- **Commits sin push:** `75d99e2`, `460e407`, `680ab32`, `9347815`, `84589da` (+ el de gitignore que cierra esta sesión).
+- **Rama:** `redesign-app`. El rediseño se commitea en esta tarea; sin push, para que el propietario revise primero.
+- **Fase 0 ✅, Fase 2 ✅ y Fase 3 ✅.** Tema **Almanac** (deal seed `spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0`).
+- **Rediseño:** composición de herramienta en tres columnas, formularios y tabla en español, valores numéricos tabulares, rangos EURIBOR plegables en móvil, foco y estados visibles. `src/state.js`, `src/lib/simulation.js` y `test/*` no se tocaron.
+- **`--kept`:** 33/33 campos, 12/12 handlers y 1/1 heading conservados. El único WARN es `figures 0/1`: el inventario renderiza al ancho móvil, donde la sección EURIBOR está cerrada, igual que en el baseline; los controles y sus 25 pares año/valor siguen presentes y visibles en desktop.
+- **Verificación:** `npm test -- test/` → 16/16; `npm run build` → OK y `dist/escenario.json` presente; Hallmark `--render --kept` → 0 FAIL, 0 REFLEX, 1 WARN descrito arriba.
+- **Finish review (subagent):** 2 hallazgos, 2 resueltos — acción Calcular ahora activa con Space y la descripción vuelve a mencionar la comparación de escenarios y las amortizaciones parciales.
+- **`npm test` sin argumentos** también descubre suites de prueba internas de `.agents/skills/hallmark/`; cinco fallan por su entorno (`import.meta.url` y una suite sin tests). No se modificaron las pruebas ni su configuración.
+- **Pendiente:** revisión del propietario; después push → comprobar deploy Vercel → PR. No se ha hecho push.
 
 ---
 

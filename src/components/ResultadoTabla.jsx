@@ -4,25 +4,32 @@ export default function ResultadoTabla({ result, startYear }) {
     <>
       {result.initialPayment != null && (
         <div className="mortgage">
-          Tu cuota inicial: <span id="mortgageContainer">{result.initialPayment.toFixed(2)}€</span>
-          <br />
-          Total de intereses: <span id="interestTotalContainer">{result.totalInterest.toFixed(2)}€</span>
+          <p>
+            Tu cuota inicial
+            <span id="mortgageContainer" className="num">
+              {result.initialPayment.toFixed(2)}€
+            </span>
+          </p>
+          <p>
+            Total de intereses
+            <span id="interestTotalContainer" className="num">
+              {result.totalInterest.toFixed(2)}€
+            </span>
+          </p>
         </div>
       )}
 
       <div className="draw">
         <div className="table_wrapper">
           <table>
-            <caption>
-              <strong>CUADRO DE AMORTIZACIÓN:</strong>
-            </caption>
+            <caption>Cuadro de amortización</caption>
             <thead>
-              <tr style={{ fontWeight: 'bold' }}>
-                <th>Mes</th>
-                <th>Cuota</th>
-                <th>Pendiente</th>
-                <th>Capital</th>
-                <th>Intereses</th>
+              <tr>
+                <th scope="col">Mes</th>
+                <th scope="col">Cuota</th>
+                <th scope="col">Pendiente</th>
+                <th scope="col">Capital</th>
+                <th scope="col">Intereses</th>
               </tr>
             </thead>
             <tbody id="tableBody">
@@ -42,49 +49,46 @@ function renderRow(row, key, startYear) {
     case 'initial':
       return (
         <tr key={key}>
-          <td>0</td>
-          <td>-</td>
-          <td>{row.balance.toFixed(2)}</td>
-          <td>-</td>
-          <td>-</td>
+          <td className="num">0</td>
+          <td className="num">-</td>
+          <td className="num">{row.balance.toFixed(2)}</td>
+          <td className="num">-</td>
+          <td className="num">-</td>
         </tr>
       );
     case 'period-end':
       return (
-        <tr key={key}>
-          <td colSpan={5} style={{ fontWeight: 'bold', color: '#e24a4a', textAlign: 'center' }}>
+        <tr className="table-event table-event--period" key={key}>
+          <td colSpan={5}>
             Fin periodo inicial fijo
           </td>
         </tr>
       );
     case 'header':
       return (
-        <tr key={key}>
-          <td colSpan={5} style={{ fontWeight: 'bold', textAlign: 'center' }}>
-            AÑO {startYear + row.loanYear} EURIBOR: {row.euribor} - AÑO {row.loanYear} DEL PRÉSTAMO
+        <tr className="table-event table-event--year" key={key}>
+          <td colSpan={5}>
+            Año {startYear + row.loanYear}, Euríbor: {row.euribor}, año {row.loanYear} del préstamo
           </td>
         </tr>
       );
     case 'amortization':
       return (
-        <tr key={key}>
-          <td
-            colSpan={5}
-            style={{ fontWeight: 'bold', textAlign: 'center', color: '#1E83CE' }}
-          >
-            Amort. parcial de {row.amount} € - reducción de {row.reduction === 'term' ? 'Plazo' : 'Cuota'}{' '}
-            <br />
+        <tr className="table-event table-event--amortization" key={key}>
+          <td colSpan={5}>
+            Amort. parcial de <span className="num">{row.amount} €</span>, reducción de{' '}
+            {row.reduction === 'term' ? 'plazo' : 'cuota'}
           </td>
         </tr>
       );
     case 'month':
       return (
         <tr key={key}>
-          <td>{row.month}</td>
-          <td>{row.payment.toFixed(2)}</td>
-          <td>{row.balance.toFixed(2)}</td>
-          <td>{row.principal.toFixed(2)}</td>
-          <td>{row.interest.toFixed(2)}</td>
+          <td className="num">{row.month}</td>
+          <td className="num">{row.payment.toFixed(2)}</td>
+          <td className="num">{row.balance.toFixed(2)}</td>
+          <td className="num">{row.principal.toFixed(2)}</td>
+          <td className="num">{row.interest.toFixed(2)}</td>
         </tr>
       );
     default:

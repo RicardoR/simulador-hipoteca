@@ -49,37 +49,45 @@ export default function App() {
   }
 
   return (
-    <div className="wrapper">
-      <div className="top">
+    <main className="wrapper">
+      <header className="top">
         <h1>Simulador de hipoteca</h1>
-        <div className="desc">
-          <p>Herramienta de simulación de hipotecas que te permite calcular de manera precisa y fácil las amortizaciones parciales de tu préstamo hipotecario. </p>
-          <p>Podrás visualizar cómo afecta el pago de amortizaciones parciales a la reducción de tu deuda hipotecaria y a la disminución de tus intereses. </p>
-          <p>Además, podrás comparar diferentes escenarios de pago para tomar decisiones informadas sobre tu hipoteca. </p>
-          <p>¡Calcula tu préstamo hipotecario con nuestro simulador y toma el control de tus finanzas!</p>
+        <p className="desc">
+          Calcula la cuota, compara escenarios y observa cómo las amortizaciones parciales cambian
+          el plazo, la deuda y los intereses.
+        </p>
+      </header>
+
+      <div className="workspace">
+        <FormularioDatos state={state} dispatch={dispatch} />
+        <div className="amort-workspace">
+          <Amortizaciones state={state} dispatch={dispatch} />
+          <div className="button">
+            <a
+              id="calcular"
+              className="calculate-action"
+              onClick={() => dispatch({ type: 'calculated' })}
+              role="button"
+              tabIndex={0}
+              onKeyDownCapture={(event) => {
+                if (event.key === ' ') event.preventDefault();
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') dispatch({ type: 'calculated' });
+              }}
+              onKeyUp={(event) => {
+                if (event.key === ' ') dispatch({ type: 'calculated' });
+              }}
+            >
+              Calcular
+            </a>
+          </div>
         </div>
-      </div>
-
-      <FormularioDatos state={state} dispatch={dispatch} />
-      <Amortizaciones state={state} dispatch={dispatch} />
-      <EuriborEvolucion state={state} dispatch={dispatch} />
-
-      <div className="button">
-        <a
-          id="calcular"
-          onClick={() => dispatch({ type: 'calculated' })}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') dispatch({ type: 'calculated' });
-          }}
-        >
-          CALCULAR
-        </a>
+        <EuriborEvolucion state={state} dispatch={dispatch} />
       </div>
 
       {warnings.length > 0 && (
-        <div className="warnings" id="warningsContainer">
+        <div className="warnings" id="warningsContainer" role="alert">
           {warnings.map((text, index) => (
             <div key={index}>{text}</div>
           ))}
@@ -87,6 +95,6 @@ export default function App() {
       )}
 
       {state.result && <ResultadoTabla result={state.result} startYear={state.startYear} />}
-    </div>
+    </main>
   );
 }

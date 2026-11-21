@@ -7,33 +7,43 @@ export default function FormularioDatos({ state, dispatch }) {
   const change = (name) => (event) =>
     dispatch({ type: 'field/changed', name, value: event.target.value });
 
-  const inputProps = (name, width) => ({
+  const inputProps = (name, size = '') => ({
     value: state.fields[name],
     onChange: change(name),
-    style: {
-      ...(width ? { width } : {}),
-      ...(state.invalid[name] ? { backgroundColor: '#dd8585' } : {}),
-    },
+    'aria-invalid': state.invalid[name] || undefined,
+    className: `field-input${size ? ` ${size}` : ''}${state.invalid[name] ? ' is-invalid' : ''}`,
+    style: state.invalid[name] ? { backgroundColor: 'var(--color-error-surface)' } : undefined,
   });
 
   return (
     <div className="mainbox">
-      <div className="title">DATOS</div>
-      <div>
-        <span>Capital:</span>
-        <input id="capital" size="7" {...inputProps('capital')} />€
+      <h2 className="title">Datos de la hipoteca</h2>
+      <div className="form-field">
+        <label htmlFor="capital">Capital</label>
+        <div className="field-control">
+          <input id="capital" size="7" {...inputProps('capital')} />
+          <span>€</span>
+        </div>
       </div>
-      <div>
-        <span>Plazo:</span>
-        <input id="yearsField" size="2" {...inputProps('years')} />años
+      <div className="form-field">
+        <label htmlFor="yearsField">Plazo</label>
+        <div className="field-control">
+          <input id="yearsField" size="2" {...inputProps('years')} />
+          <span>años</span>
+        </div>
       </div>
-      <div>
-        <span>Inicio:</span>
+      <div className="form-field">
+        <label htmlFor="startYearField">Inicio</label>
         <input id="startYearField" size="4" {...inputProps('startYear')} />
       </div>
-      <div>
-        <span>Tipo:</span>
-        <select id="typeField" value={state.fields.type} onChange={change('type')}>
+      <div className="form-field">
+        <label htmlFor="typeField">Tipo</label>
+        <select
+          id="typeField"
+          className="field-input"
+          value={state.fields.type}
+          onChange={change('type')}
+        >
           <option value="variable">Variable</option>
           <option value="fixed">Fijo</option>
         </select>
@@ -41,42 +51,64 @@ export default function FormularioDatos({ state, dispatch }) {
 
       {state.fields.type === 'variable' ? (
         <div className="variable">
-          <div>
-            <span>Interés:</span>
-            <label>EURIBOR</label> +{' '}
-            <input id="variableInterestField" {...inputProps('euriborSpread', 40)} />%
+          <div className="form-field">
+            <label htmlFor="variableInterestField">Interés</label>
+            <div className="field-control">
+              <span>EURIBOR +</span>
+              <input
+                id="variableInterestField"
+                {...inputProps('euriborSpread', 'field-input--short')}
+              />
+              <span>%</span>
+            </div>
           </div>
-          <div className="inicial">
-            <div>
-              <label>
-                {' '}
+          <fieldset className="inicial">
+            <legend className="visually-hidden">Opciones del periodo inicial</legend>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={state.fields.initialPeriodActive}
+                onChange={(event) =>
+                  dispatch({
+                    type: 'field/changed',
+                    name: 'initialPeriodActive',
+                    value: event.target.checked,
+                  })
+                }
+              />{' '}
+              <span>Periodo inicial fijo</span>
+            </label>
+            <div className="initial-controls">
+              <label htmlFor="initialVariableInterestField">Interés fijo</label>
+              <div className="field-control">
                 <input
-                  type="checkbox"
-                  checked={state.fields.initialPeriodActive}
-                  onChange={(event) =>
-                    dispatch({
-                      type: 'field/changed',
-                      name: 'initialPeriodActive',
-                      value: event.target.checked,
-                    })
-                  }
-                />{' '}
-                Periodo inicial fijo{' '}
-              </label>
+                  id="initialVariableInterestField"
+                  {...inputProps('initialFixedInterest', 'field-input--short')}
+                />
+                <span>%</span>
+              </div>
+              <label htmlFor="fixedMonthsField">Duración</label>
+              <div className="field-control">
+                <input
+                  id="fixedMonthsField"
+                  {...inputProps('initialPeriodMonths', 'field-input--short')}
+                />
+                <span>meses</span>
+              </div>
             </div>
-            <div>
-              <input id="initialVariableInterestField" {...inputProps('initialFixedInterest', 45)} />
-              <label className="low">% durante</label>{' '}
-              <input id="fixedMonthsField" {...inputProps('initialPeriodMonths', 40)} />
-              <label className="low">meses</label>
-            </div>
-          </div>
+          </fieldset>
         </div>
       ) : (
         <div className="fijo">
-          <div>
-            <span>Interés:</span>
-            <input id="fixedInterestField" {...inputProps('fixedInterest', 50)} />%
+          <div className="form-field">
+            <label htmlFor="fixedInterestField">Interés</label>
+            <div className="field-control">
+              <input
+                id="fixedInterestField"
+                {...inputProps('fixedInterest', 'field-input--short')}
+              />
+              <span>%</span>
+            </div>
           </div>
         </div>
       )}

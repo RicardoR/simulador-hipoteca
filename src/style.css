@@ -1,292 +1,701 @@
-@font-face {
-  font-family: Palanquin;
-  font-style: normal;
-  font-weight: 400;
-  src: local("Palanquin Regular"), local("Palanquin-Regular"),
-    url(https://fonts.gstatic.com/s/palanquin/v1/fJwKFYo9XEsYeVx86yVYiBJtnKITppOI_IvcXXDNrsc.woff2)
-      format("woff2");
-  unicode-range: U+0100024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF,
-    U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: Palanquin;
-  font-style: normal;
-  font-weight: 400;
-  src: local("Palanquin Regular"), local("Palanquin-Regular"),
-    url(https://fonts.gstatic.com/s/palanquin/v1/wDcF5fDzT3UyPmqw3IJ7_FtXRa8TVwTICgirnJhmVJw.woff2)
-      format("woff2");
-  unicode-range: U+000000FF, U+0131, U+01520153, U+02C6, U+02DA, U+02DC,
-    U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
-}
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  text-align: center;
-  font-family: Palanquin, sans-serif, Arial;
-  font-size: 16px;
-  margin: 0;
-  padding: 0;
-}
-img {
-  border: 0;
-}
-a {
-  text-decoration: none;
-  cursor: pointer;
-  color: inherit;
-}
-input,
-select {
-  font-size: 18px;
-}
-.display-none {
-  display: none;
-}
-.clear {
-  clear: both;
-}
+/* Hallmark · shape: app screen · genre: editorial · theme: Almanac (deal 1/3, seed spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0) · redesign: full
+ * nav: none · signature: amortization schedule · states: editable inputs, warnings, calculated results
+ * axes: mid/grotesk-sans/chromatic-magenta · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, no prior log; the ruled schedule carries Almanac’s specific material */
+/* Hallmark · finish-review: subagent · 2 findings · 2 resolved */
+@import url("./tokens.css");
+@import url("./base.css");
+
 .wrapper {
-  width: 1240px;
-  text-align: left;
-  margin: 20px auto;
-  background: #fff;
-  padding: 20px;
-  min-height: 600px;
-  box-shadow: 2px 5px 9px #999;
-  border-radius: 3px;
-}
-.top {
-  text-align: center;
-  margin: 0 0 20px;
-}
-.top h1 {
-  font-size: 64px;
-  text-shadow: 1px 3px 5px #aaa;
-}
-.top h1 span {
-  color: #1e83ce;
-  font-weight: 700;
-}
-.top .desc {
-  margin: 0 0 15px;
-}
-.top .desc div {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2fab05;
-}
-.amort,
-.euribor,
-.mainbox {
-  float: left;
-  font-size: 18px;
-  padding: 10px;
-  border-radius: 3px;
-}
-.amort .title,
-.euribor .title,
-.mainbox .title {
-  font-weight: 700;
-}
-.mainbox {
-  width: 250px;
-  background-color: #d2e7f7;
-}
-.mainbox div {
-  margin: 0 0 10px;
-}
-.mainbox div span {
-  width: 70px;
-  display: inline-block;
-}
-.mainbox div label.low {
-  font-size: 14px;
-}
-.mainbox div input {
-  margin: 0 5px 0 0;
-}
-.mainbox .inicial {
-  background: #c2d7e7;
-  padding: 8px;
-}
-.amort {
-  width: 670px;
-  background-color: #f7e1c5;
-  margin: 0 20px;
-}
-.amort div {
-  margin: 0 0 10px;
-}
-.amort div span {
-  margin: 0 0 0 10px;
-}
-.amort div a {
-  color: #e40309;
-  font-weight: 700;
-  margin: 0 0 0 10px;
-}
-.amort div input {
-  margin: 0 5px 0 0;
-}
-.amort div.add {
-  text-align: right;
-  margin: 0 10px 0 0;
-}
-.amort div.add a {
-  color: #2fab05;
-}
-.euribor {
-  width: 240px;
-  background: #ecfcde;
-  height: 346px;
-  overflow: auto;
-}
-.euribor div[data-year] span.year {
-  width: 40px;
-  display: inline-block;
-}
-.euribor div[data-year] input[type="range"] {
-  margin: 0 5px;
-  vertical-align: bottom;
-  width: 110px;
-}
-.button {
-  clear: both;
-  padding: 30px 0;
-  text-align: center;
-}
-.button a {
-  padding: 6px 25px;
-  background: #4cc448;
-  color: #fff;
-  font-weight: 700;
-  border-radius: 5px;
-  font-size: 24px;
-  box-shadow: 1px 3px 3px #aaa;
-  border: 1px solid #3da82d;
-}
-.mortgage {
-  clear: both;
-  text-align: center;
-  font-size: 22px;
-}
-.warnings {
-  clear: both;
-  margin: 12px 0;
-  color: #e24a4a;
-  font-weight: 700;
-}
-.mortgage span {
-  font-weight: 700;
-  font-size: 26px;
-  color: #1e83ce;
-}
-.mortgage span#interestTotalContainer {
-  color: #e24a4a;
-}
-.draw {
-  clear: both;
-  margin: 20px 0;
+  width: min(100%, var(--container));
+  margin-inline: auto;
+  padding: var(--space-2xl) var(--gutter) var(--space-3xl);
 }
 
-.draw .right {
-  float: right;
-  width: 336px;
+.top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+  align-items: end;
+  gap: var(--gap-columns);
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: var(--rule-bar) solid var(--color-rule-2);
 }
-.draw .right ins {
-  width: 336px;
-  height: 280px;
-  margin: 0 0 20px;
-  display: inline-block;
+
+.top h1 {
+  max-width: 18ch;
+  font-size: var(--text-3xl);
 }
-.draw table {
-  border-top: 1px solid #666;
-  background: #fff;
+
+.desc {
+  max-width: 48ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(22rem, 1.4fr) minmax(15rem, 1fr);
+  align-items: start;
+  gap: var(--gap-columns);
+}
+
+.amort-workspace {
+  min-width: 0;
+}
+
+.mainbox,
+.amort,
+.euribor {
+  min-width: 0;
+}
+
+.mainbox {
+  padding: var(--space-lg);
+  border-top: var(--rule-bar) solid var(--color-rule-2);
+  background: var(--color-paper-2);
+}
+
+.title {
+  max-width: none;
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+}
+
+.form-field {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.variable .form-field {
+  grid-template-columns: minmax(3rem, 0.45fr) minmax(0, 1.55fr);
+  gap: var(--space-2xs);
+}
+
+.variable .field-control {
+  gap: var(--space-3xs);
+}
+
+.form-field > label,
+.initial-controls > label,
+.amort-row > label {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+.field-control {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.field-control > span,
+.amount-field > span {
+  flex: 0 0 auto;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.field-input,
+.amort-row input,
+.amort-row select {
+  min-width: 0;
+  min-height: 36px;
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--rule-hair) solid var(--color-muted);
+  border-radius: var(--radius-pill);
+  outline: 2px solid transparent;
+  outline-offset: -3px;
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  font-family: var(--font-outlier);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.field-input:focus-visible,
+.amort-row input:focus-visible,
+.amort-row select:focus-visible {
+  border-color: var(--color-ink-2);
+  outline-color: var(--color-focus);
+}
+
+.field-input:hover,
+.amort-row input:hover,
+.amort-row select:hover {
+  background-color: var(--color-paper);
+}
+
+.field-input--short {
+  width: 5.5rem;
+}
+
+#capital {
+  max-width: 9rem;
+}
+
+#yearsField {
+  max-width: 5rem;
+}
+
+#startYearField {
+  max-width: 7rem;
+}
+
+#variableInterestField {
+  flex: 0 0 3.75rem;
+  width: 3.75rem;
+  padding-inline: var(--space-2xs);
+}
+
+#typeField {
   width: 100%;
+  font-family: var(--font-display);
 }
-.draw table #tableBody tr:nth-child(odd) {
-  background: #e6f0f7;
+
+.field-input[aria-invalid="true"],
+.field-input.is-invalid,
+.amort-row input[aria-invalid="true"] {
+  border-color: var(--color-error);
 }
-.draw table tr td:first-child {
-  padding: 0 0 0 10px;
+
+.inicial {
+  min-width: 0;
+  margin: var(--space-md) 0 0;
+  padding: var(--space-md) 0 0;
+  border: 0;
+  border-top: var(--rule-hair) solid var(--color-rule);
 }
-.draw .table_wrapper {
-  width: 900px;
-  margin: auto;
+
+.checkbox-label {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
 }
-@media screen and (max-device-width: 760px),
-  screen and (max-width: 760px) {
-  body {
-    font-size: 14px;
-    background: 0 0;
+
+.checkbox-label input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-accent);
+}
+
+.initial-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.initial-controls .field-input--short {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+}
+
+.amort {
+  padding: var(--space-lg);
+  border-top: var(--rule-bar) solid var(--color-ink);
+  background: var(--color-sheet);
+}
+
+.amort .title {
+  padding-bottom: var(--space-sm);
+  border-bottom: var(--rule-bar) solid var(--color-rule-2);
+}
+
+.amort-row {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-sm) var(--space-md);
+  padding-block: var(--space-md);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.amort-row > label {
+  display: grid;
+  min-width: 4rem;
+  gap: var(--space-2xs);
+}
+
+.amort-row .amount-field {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.amort-row .amount-field > span {
+  padding-bottom: var(--space-xs);
+}
+
+.amort-row .reduction-field {
+  min-width: 7rem;
+}
+
+.amort-row .anyo,
+.amort-row .mes {
+  width: 5rem;
+}
+
+.amort-row .capital {
+  width: 7rem;
+}
+
+.amort-row .tipo {
+  width: 7rem;
+  font-family: var(--font-display);
+}
+
+.text-action,
+.calculate-action {
+  position: relative;
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--rule-hair) solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.text-action:hover {
+  color: var(--color-accent-2);
+  text-decoration-thickness: 2px;
+}
+
+.text-action:focus-visible,
+.calculate-action:focus-visible,
+.euribor-toggle:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.text-action:active,
+.calculate-action:active {
+  transform: translateY(1px);
+}
+
+.text-action:disabled,
+.text-action[aria-disabled="true"],
+.calculate-action:disabled,
+.calculate-action[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.text-action[aria-busy="true"],
+.calculate-action[aria-busy="true"] {
+  cursor: progress;
+}
+
+.text-action[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.text-action.is-success {
+  color: var(--color-success);
+}
+
+.remove-amort {
+  margin-left: auto;
+}
+
+.add {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-sm);
+}
+
+.add-action {
+  color: var(--color-accent-2);
+}
+
+.euribor {
+  height: 29rem;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--space-md);
+  border-top: var(--rule-bar) solid var(--color-rule-2);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.euribor .title {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-raised);
+  margin: 0;
+  padding-block: var(--space-2xs);
+  background: var(--color-paper);
+}
+
+.euribor-toggle {
+  display: none;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-xs) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.toggle-mark::before {
+  content: "+";
+  color: var(--color-accent-2);
+  font-family: var(--font-outlier);
+}
+
+.euribor.open .toggle-mark::before {
+  content: "−";
+}
+
+#euribor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-2xs) 0;
+  overflow: visible;
+  padding: var(--space-sm) var(--space-xs) var(--space-md) 0;
+}
+
+#euribor > div[data-year] {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.year,
+.val {
+  color: var(--color-ink-2);
+  font-family: var(--font-outlier);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.val {
+  text-align: right;
+}
+
+#euribor input[type="range"] {
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+#euribor input[type="range"]:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.button {
+  display: flex;
+  justify-content: flex-end;
+  padding-block: var(--space-lg);
+}
+
+.calculate-action {
+  min-height: 40px;
+  padding-inline: var(--space-lg);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-size: var(--text-md);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.calculate-action:hover {
+  border-color: var(--color-accent-2);
+  background: var(--color-accent-2);
+}
+
+.calculate-action[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.calculate-action.is-success {
+  border-color: var(--color-success);
+}
+
+.mortgage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md) var(--gap-columns);
+  padding-block: var(--space-md);
+  border-top: var(--rule-bar) solid var(--color-rule-2);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.mortgage p {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.mortgage .num {
+  color: var(--color-ink);
+  font-family: var(--font-outlier);
+  font-size: var(--text-2xl);
+  font-variant-numeric: tabular-nums;
+}
+
+#interestTotalContainer {
+  color: var(--color-accent-2);
+}
+
+.warnings {
+  display: grid;
+  gap: var(--space-xs);
+  margin-block: var(--space-md);
+  padding-left: var(--space-md);
+  border-left: var(--rule-bar) solid var(--color-error);
+  color: var(--color-error);
+  font-weight: 500;
+}
+
+.draw {
+  min-width: 0;
+  margin-top: var(--space-xl);
+}
+
+.table_wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.draw table {
+  width: 100%;
+  min-width: 44rem;
+  border-collapse: collapse;
+  background: var(--color-sheet);
+}
+
+.draw caption {
+  padding: var(--space-sm) 0;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  text-align: left;
+}
+
+.draw thead th {
+  padding: var(--space-sm) var(--space-xs);
+  border-bottom: var(--rule-bar) solid var(--color-rule-2);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.draw thead th:first-child {
+  text-align: left;
+}
+
+.draw tbody td {
+  padding: var(--space-xs);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  color: var(--color-ink-2);
+}
+
+.draw tbody td.num {
+  font-family: var(--font-outlier);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.draw tbody tr > td:first-child {
+  text-align: left;
+}
+
+.draw tbody .table-event td {
+  padding-block: var(--space-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  text-align: left;
+}
+
+.table-event--year td {
+  border-top: var(--rule-bar) solid var(--color-rule-2);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.table-event--period td {
+  color: var(--color-muted);
+}
+
+.table-event--amortization td {
+  color: var(--color-accent-2);
+}
+
+.table-event--amortization .num {
+  color: inherit;
+}
+
+.draw .right,
+.draw .clear {
+  display: none;
+}
+
+@media (hover: hover) {
+  .euribor-toggle:hover {
+    color: var(--color-accent-2);
   }
+}
+
+@media (max-width: 60rem) {
   .wrapper {
-    width: 100%;
-    margin: 0;
-    padding: 10px;
+    padding-block: var(--space-xl) var(--space-2xl);
   }
-  .top ins {
-    height: 100px;
+
+  .top {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
   }
-  .top h1 {
-    font-size: 30px;
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .top .desc {
-    font-size: 12px;
-    text-align: justify;
+
+  .amort-workspace {
+    display: contents;
   }
-  .top .desc div {
-    font-size: 18px;
-    text-align: center;
-  }
-  .amort,
-  .euribor,
-  .mainbox {
-    width: 100%;
-    margin: 0 0 10px;
-  }
-  .amort .am,
-  .amort .am input,
-  .amort .am select {
-    font-size: 12px;
-  }
+
   .euribor {
-    height: 54px;
-    overflow: hidden;
+    height: auto;
+    grid-row: 3;
+    overflow: visible;
   }
-  .euribor .title span {
-    float: right;
-    cursor: pointer;
+
+  .button {
+    grid-row: 4;
   }
-  .euribor .title span::after {
-    content: "▼";
+
+  .euribor-title-text {
+    display: none;
   }
-  .euribor div[data-year] input[type="range"] {
-    width: 160px;
+
+  .euribor-toggle {
+    display: flex;
   }
-  .euribor.open {
-    height: 300px;
-    overflow: auto;
+
+  .euribor:not(.open) #euribor {
+    display: none;
   }
-  .euribor.open .title span::after {
-    content: "▲";
+
+  #euribor {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 25rem;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
-  .draw .table_wrapper {
-    float: none;
-    width: 100%;
+
+  .button {
+    justify-content: flex-start;
   }
-  .draw .right {
-    width: 100%;
-    float: left;
-    clear: both;
-    text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .wrapper {
+    padding: var(--space-lg) var(--gutter) var(--space-2xl);
   }
-  .draw .right ins {
-    width: 320px;
-    height: 100px;
-    margin: 20px 0 0 -10px;
+
+  .top h1 {
+    font-size: var(--text-2xl);
+  }
+
+  .desc {
+    font-size: var(--text-md);
+  }
+
+  .mainbox,
+  .amort {
+    padding: var(--space-md);
+  }
+
+  .form-field {
+    grid-template-columns: minmax(5rem, 0.8fr) minmax(0, 1.2fr);
+  }
+
+  .initial-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .amort-row {
+    gap: var(--space-sm);
+  }
+
+  .remove-amort {
+    margin-left: 0;
+  }
+
+  .mortgage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-sm);
+  }
+
+  .draw table {
+    min-width: 42rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .text-action,
+  .calculate-action,
+  .euribor-toggle,
+  .checkbox-label {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calculate-action {
+    transition: none;
   }
 }

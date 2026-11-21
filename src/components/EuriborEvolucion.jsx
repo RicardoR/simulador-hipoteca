@@ -16,6 +16,7 @@ export default function EuriborEvolucion({ state, dispatch }) {
       <div data-year={state.startYear + yearIndex} key={index}>
         <span className="year">{state.startYear + yearIndex}</span>
         <input
+          aria-label={`Euríbor ${state.startYear + yearIndex}`}
           type="range"
           min="-0.5"
           max="15"
@@ -32,9 +33,22 @@ export default function EuriborEvolucion({ state, dispatch }) {
 
   return (
     <div className={`euribor${state.euriborOpen ? ' open' : ''}`}>
-      <div className="title" onClick={() => dispatch({ type: 'euribor/toggled' })}>
-        EVOLUCIÓN EURIBOR <span></span>
-      </div>
+      <h2 className="title">
+        <span className="euribor-title-text">Evolución del Euríbor</span>
+        <button
+          type="button"
+          className="euribor-toggle"
+          aria-label={
+            state.euriborOpen ? 'Ocultar evolución del Euríbor' : 'Mostrar evolución del Euríbor'
+          }
+          aria-expanded={state.euriborOpen}
+          aria-controls="euribor"
+          onClick={() => dispatch({ type: 'euribor/toggled' })}
+        >
+          Euríbor
+          <span className="toggle-mark" aria-hidden="true"></span>
+        </button>
+      </h2>
       <div id="euribor">{sliders}</div>
     </div>
   );
