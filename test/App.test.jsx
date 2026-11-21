@@ -48,6 +48,7 @@ describe('escenario.json', () => {
 
     expect(document.getElementById('yearsField').value).toBe('10');
     expect(document.getElementById('typeField').value).toBe('fixed');
+    expect(document.getElementById('typeField').closest('.select-wrap')).not.toBeNull();
     expect(document.getElementById('fixedInterestField').value).toBe('3.1');
     expect(document.querySelector('.fijo')).not.toBeNull();
     expect(document.querySelector('.variable')).toBeNull();
@@ -113,15 +114,17 @@ describe('the visible euribor value is the calculated one (bug #3)', () => {
     await waitForScenarioWarning();
 
     const slider = document.querySelector('#euribor input[type=range]');
+    const valueInput = document.getElementById('euribor-value-0');
     fireEvent.change(slider, { target: { value: '5' } });
-    expect(slider.nextElementSibling.textContent).toBe('5.00');
+    expect(valueInput.value).toBe('5.00');
 
     // the sliders are derived from state: nothing is rebuilt from the default
     // series, so the user's value survives the term change
     fireEvent.change(document.getElementById('yearsField'), { target: { value: '30' } });
     const rebuilt = document.querySelector('#euribor input[type=range]');
+    const rebuiltValueInput = document.getElementById('euribor-value-0');
     expect(rebuilt.value).toBe('5');
-    expect(rebuilt.nextElementSibling.textContent).toBe('5.00');
+    expect(rebuiltValueInput.value).toBe('5.00');
     expect(document.querySelectorAll('#euribor input[type=range]')).toHaveLength(30);
 
     // spread 1.5 + euribor 5 = 6.5% on the first month
@@ -132,6 +135,56 @@ describe('the visible euribor value is the calculated one (bug #3)', () => {
     const firstMonthCells = [...tableRows[1].querySelectorAll('td')].map((td) => td.textContent.trim());
     const interest = Number(firstMonthCells[4]);
     expect((interest * 12 * 100) / initialBalance).toBeCloseTo(1.5 + 5, 5);
+  });
+
+  it('accepts a direct Euribor value and uses it in the calculation', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const valueInput = document.getElementById('euribor-value-0');
+    fireEvent.change(valueInput, { target: { value: '5.4' } });
+
+    expect(document.getElementById('euribor-slider-0').value).toBe('5.4');
+    expect(valueInput.value).toBe('5.4');
+
+    fireEvent.blur(valueInput);
+    expect(valueInput.value).toBe('5.40');
+
+    fireEvent.click(document.getElementById('calcular'));
+    await waitFor(() => expect(document.querySelectorAll('#tableBody tr').length).toBeGreaterThan(1));
+
+    const tableRows = document.querySelectorAll('#tableBody tr');
+    const initialBalance = Number(tableRows[0].querySelectorAll('td')[2].textContent);
+    const firstMonthCells = [...tableRows[1].querySelectorAll('td')].map((td) => td.textContent.trim());
+    const interest = Number(firstMonthCells[4]);
+    expect((interest * 12 * 100) / initialBalance).toBeCloseTo(1.5 + 5.4, 5);
+  });
+
+  it('keeps the last valid Euribor value and blocks calculation for an invalid direct entry', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const valueInput = document.getElementById('euribor-value-0');
+    const slider = document.getElementById('euribor-slider-0');
+    fireEvent.change(valueInput, { target: { value: '15.5' } });
+
+    expect(valueInput.getAttribute('aria-invalid')).toBe('true');
+    expect(slider.value).toBe('2.2');
+    fireEvent.change(valueInput, { target: { value: '2.25' } });
+    expect(valueInput.getAttribute('aria-invalid')).toBe('true');
+    expect(slider.value).toBe('2.2');
+    fireEvent.click(document.getElementById('calcular'));
+
+    expect(document.getElementById('tableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'fixed' } });
+    expect(valueInput.getAttribute('aria-invalid')).toBeNull();
+    expect(valueInput.value).toBe('2.20');
+    fireEvent.click(document.getElementById('calcular'));
+    await waitFor(() => expect(document.getElementById('tableBody')).not.toBeNull());
   });
 });
 

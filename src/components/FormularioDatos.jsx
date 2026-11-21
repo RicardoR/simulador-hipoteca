@@ -38,15 +38,17 @@ export default function FormularioDatos({ state, dispatch }) {
       </div>
       <div className="form-field">
         <label htmlFor="typeField">Tipo</label>
-        <select
-          id="typeField"
-          className="field-input"
-          value={state.fields.type}
-          onChange={change('type')}
-        >
-          <option value="variable">Variable</option>
-          <option value="fixed">Fijo</option>
-        </select>
+        <div className="select-wrap">
+          <select
+            id="typeField"
+            className="field-input select-input"
+            value={state.fields.type}
+            onChange={change('type')}
+          >
+            <option value="variable">Variable</option>
+            <option value="fixed">Fijo</option>
+          </select>
+        </div>
       </div>
 
       {state.fields.type === 'variable' ? (

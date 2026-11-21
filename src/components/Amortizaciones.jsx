@@ -24,31 +24,35 @@ export default function Amortizaciones({ state, dispatch }) {
           <div className="am amort-row" key={amortization.id}>
             <label>
               Año
-              <select
-                className="anyo"
-                value={String(amortization.year)}
-                onChange={(event) => update(amortization.id, { year: Number(event.target.value) })}
-              >
-                {yearOptions(amortization).map((year) => (
-                  <option key={year} value={String(year)}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+              <span className="select-wrap anyo-wrap">
+                <select
+                  className="anyo"
+                  value={String(amortization.year)}
+                  onChange={(event) => update(amortization.id, { year: Number(event.target.value) })}
+                >
+                  {yearOptions(amortization).map((year) => (
+                    <option key={year} value={String(year)}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </span>
             </label>
             <label>
               Mes
-              <select
-                className="mes"
-                value={String(amortization.month)}
-                onChange={(event) => update(amortization.id, { month: Number(event.target.value) })}
-              >
-                {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
-                  <option key={month} value={String(month)}>
-                    {month}
-                  </option>
-                ))}
-              </select>
+              <span className="select-wrap mes-wrap">
+                <select
+                  className="mes"
+                  value={String(amortization.month)}
+                  onChange={(event) => update(amortization.id, { month: Number(event.target.value) })}
+                >
+                  {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
+                    <option key={month} value={String(month)}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+              </span>
             </label>
             <label className="amount-field">
               Capital
@@ -68,14 +72,16 @@ export default function Amortizaciones({ state, dispatch }) {
             </label>
             <label className="reduction-field">
               Reducción
-              <select
-                className="tipo"
-                value={amortization.type}
-                onChange={(event) => update(amortization.id, { type: event.target.value })}
-              >
-                <option value="term">Plazo</option>
-                <option value="payment">Cuota</option>
-              </select>
+              <span className="select-wrap tipo-wrap">
+                <select
+                  className="tipo"
+                  value={amortization.type}
+                  onChange={(event) => update(amortization.id, { type: event.target.value })}
+                >
+                  <option value="term">Plazo</option>
+                  <option value="payment">Cuota</option>
+                </select>
+              </span>
             </label>
             <button
               type="button"

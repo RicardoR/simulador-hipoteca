@@ -1,10 +1,15 @@
-import { EURIBOR_SERIES } from '../state.js';
+import {
+  EURIBOR_MAX,
+  EURIBOR_MIN,
+  EURIBOR_SERIES,
+  EURIBOR_STEP,
+  isValidEuriborValue,
+} from '../state.js';
 
 /**
- * Euribor evolution: one slider per loan year. The stored override (or the
- * default series) is the single source of truth for both the visible value and
- * the calculation, so the slider can no longer show one number and calculate
- * with another (bug #3).
+ * Euribor evolution: a range and number input per loan year. The last valid
+ * override (or the default series) drives the slider and calculation; raw
+ * drafts let the user edit decimals without diverging from that value (bug #3).
  */
 export default function EuriborEvolucion({ state, dispatch }) {
   const sliders = [];
@@ -12,21 +17,52 @@ export default function EuriborEvolucion({ state, dispatch }) {
     const index = yearIndex * 12;
     const override = state.euriborOverrides[index];
     const value = typeof override === 'number' ? override : (EURIBOR_SERIES[yearIndex] ?? 0);
+    const draft = state.euriborDrafts[index];
+    const year = state.startYear + yearIndex;
+    const inputInvalid = typeof draft === 'string' && !isValidEuriborValue(draft);
     sliders.push(
-      <div data-year={state.startYear + yearIndex} key={index}>
-        <span className="year">{state.startYear + yearIndex}</span>
+      <div data-year={year} key={index}>
+        <span className="year">{year}</span>
         <input
+          id={`euribor-slider-${index}`}
           aria-label={`Euríbor ${state.startYear + yearIndex}`}
           type="range"
-          min="-0.5"
-          max="15"
-          step="0.1"
+          min={EURIBOR_MIN}
+          max={EURIBOR_MAX}
+          step={EURIBOR_STEP}
           value={value}
           onChange={(event) =>
             dispatch({ type: 'euribor/changed', index, value: parseFloat(event.target.value) })
           }
         />
-        <span className="val">{value.toFixed(2)}</span>
+        <label className="euribor-value-field">
+          <span className="visually-hidden">Valor del Euríbor {year}</span>
+          <input
+            id={`euribor-value-${index}`}
+            className="euribor-value"
+            type="number"
+            min={EURIBOR_MIN}
+            max={EURIBOR_MAX}
+            step={EURIBOR_STEP}
+            inputMode="decimal"
+            value={typeof draft === 'string' ? draft : value.toFixed(2)}
+            aria-invalid={inputInvalid || undefined}
+            aria-describedby={inputInvalid ? `euribor-error-${index}` : undefined}
+            onChange={(event) =>
+              dispatch({
+                type: 'euribor/inputChanged',
+                index,
+                value: event.target.value,
+              })
+            }
+            onBlur={() => dispatch({ type: 'euribor/inputCommitted', index })}
+          />
+        </label>
+        {inputInvalid && (
+          <span className="euribor-error" id={`euribor-error-${index}`}>
+            Usa valores entre -0,5 y 15, en pasos de 0,1.
+          </span>
+        )}
       </div>
     );
   }

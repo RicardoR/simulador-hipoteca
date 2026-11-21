@@ -2,7 +2,7 @@
  * nav: none · signature: amortization schedule · states: editable inputs, warnings, calculated results
  * axes: mid/grotesk-sans/chromatic-magenta · posture: restrained · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, no prior log; the ruled schedule carries Almanac’s specific material */
-/* Hallmark · finish-review: subagent · 2 findings · 2 resolved */
+/* Hallmark · finish-review: subagent · 3 findings · 3 resolved (2 initial, 1 follow-up) */
 @import url("./tokens.css");
 @import url("./base.css");
 
@@ -95,6 +95,36 @@
   gap: var(--space-xs);
 }
 
+.select-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.select-wrap::after {
+  position: absolute;
+  top: 50%;
+  right: var(--space-sm);
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: var(--rule-hair) solid var(--color-muted);
+  border-bottom: var(--rule-hair) solid var(--color-muted);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+}
+
+.select-wrap:focus-within::after {
+  border-color: var(--color-accent-2);
+}
+
+.select-wrap > select {
+  width: 100%;
+  appearance: none;
+  padding-right: var(--space-xl);
+  cursor: pointer;
+}
+
 .field-control > span,
 .amount-field > span {
   flex: 0 0 auto;
@@ -104,7 +134,8 @@
 
 .field-input,
 .amort-row input,
-.amort-row select {
+.amort-row select,
+.euribor-value {
   min-width: 0;
   min-height: 36px;
   padding: var(--space-2xs) var(--space-xs);
@@ -121,14 +152,16 @@
 
 .field-input:focus-visible,
 .amort-row input:focus-visible,
-.amort-row select:focus-visible {
+.amort-row select:focus-visible,
+.euribor-value:focus-visible {
   border-color: var(--color-ink-2);
   outline-color: var(--color-focus);
 }
 
 .field-input:hover,
 .amort-row input:hover,
-.amort-row select:hover {
+.amort-row select:hover,
+.euribor-value:hover {
   background-color: var(--color-paper);
 }
 
@@ -161,7 +194,8 @@
 
 .field-input[aria-invalid="true"],
 .field-input.is-invalid,
-.amort-row input[aria-invalid="true"] {
+.amort-row input[aria-invalid="true"],
+.euribor-value[aria-invalid="true"] {
   border-color: var(--color-error);
 }
 
@@ -239,17 +273,26 @@
   min-width: 7rem;
 }
 
+.amort-row .anyo-wrap,
+.amort-row .mes-wrap {
+  width: 5rem;
+}
+
 .amort-row .anyo,
 .amort-row .mes {
-  width: 5rem;
+  width: 100%;
 }
 
 .amort-row .capital {
   width: 7rem;
 }
 
-.amort-row .tipo {
+.amort-row .tipo-wrap {
   width: 7rem;
+}
+
+.amort-row .tipo {
+  width: 100%;
   font-family: var(--font-display);
 }
 
@@ -386,22 +429,34 @@
 
 #euribor > div[data-year] {
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 5.5rem;
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
 }
 
-.year,
-.val {
+.year {
   color: var(--color-ink-2);
   font-family: var(--font-outlier);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
 }
 
-.val {
+.euribor-value-field {
+  display: block;
+  min-width: 0;
+  margin: 0;
+}
+
+.euribor-value {
+  width: 100%;
   text-align: right;
+}
+
+.euribor-error {
+  grid-column: 2 / -1;
+  color: var(--color-error);
+  font-size: var(--text-xs);
 }
 
 #euribor input[type="range"] {
