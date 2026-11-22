@@ -155,7 +155,7 @@ describe('bug #5 — the last row is never negative', () => {
   });
 });
 
-describe('bug #6 — term ("plazo") reduction', () => {
+describe('bug #6 — term reduction', () => {
   it('keeps the payment and derives the remaining term from the annuity equality', () => {
     const rate = 2.25;
     const result = calculateSimulation({
