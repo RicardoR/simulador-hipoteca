@@ -24,10 +24,10 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | **1 · Bugs de validación** | Campo inválido **oculto** bloquea CALCULAR sin indicio visual (`state.js:230`) | ⬜ Pendiente |
 | | `initialPeriodMonths` **sin máximo**: ≥ plazo desactiva en silencio todo el tipo variable (`state.js:60`) | ⬜ Pendiente |
 | | Espacios en blanco validan como 0 % (`parseFloatField`, `state.js:69`) | ⬜ Pendiente |
-| | `1.5` en Capital se interpreta como 15 (`parseIntField`, `state.js:64`) — **decisión abierta 1** | ⬜ Pendiente |
+| | `1.5` en Capital se interpreta como 15 (`parseIntField`, `state.js:64`) — **decidido: solo enteros** | ⬜ Pendiente |
 | **2 · Bugs de cálculo** | Cabeceras con **año fraccionario** ("Año 2027.5") (`simulation.js:143`) | ⬜ Pendiente |
 | | Falta la **cabecera del último año parcial** → la tabla parece terminar un año antes | ⬜ Pendiente |
-| | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decisión abierta 2** | ⬜ Pendiente |
+| | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decidido: cuota original** | ⬜ Pendiente |
 | | Robustez de la lib: euríbor vacío en tipo variable → NaN (inalcanzable desde UI) | ⬜ Pendiente |
 | **3 · Tests nuevos** | Casos límite de simulación + tests de UI faltantes (teclado, borrar amortización, `startYear`, `startDate` inválido) | ⬜ Pendiente |
 | **4 · Accesibilidad y perf** | "Calcular": `<a role="button">` → `<button>` real con `aria-disabled` | ⬜ Pendiente |
@@ -121,7 +121,9 @@ correctos:
   `initialFixedInterest` hasta entonces.
 - Amortización tipo `payment` → recálculo de cuota; tipo `plazo` →
   `solveMonths` (ya cubierto parcialmente por el bug #6).
-- Significado de `initialPayment` (ver decisión abierta 2).
+- Significado de `initialPayment` → fija como correcta la **cuota original**
+  (decisión 2 de más abajo); el test previo debe capturar el comportamiento
+  actual para que el cambio de Fase 2.3 sea deliberado.
 - Consistencia: `totalInterest == Σ intereses de las filas`.
 
 > `src/lib/simulation.js` **no se toca en esta fase**.
@@ -157,12 +159,13 @@ el caso inverso (Euríbor/periodo con basura → fijo → calcula).
 hipoteca**, el interés se queda en `initialFixedInterest` para siempre y los
 overrides del Euríbor del usuario **nunca se aplican, sin ningún aviso**.
 
-**Fix:** máximo dinámico `termYears * 12` (además del `min: 0`). Si el escenario
-trae un valor mayor, marcarlo inválido y avisar en lugar de silenciar la máquina
-de tipo variable.
+**Fix:** máximo dinámico `termYears * 12` (además del `min: 0`).
+✅ **Decisión (2026-11-22): (a) marcar el campo en rojo y bloquear el cálculo**,
+consistente con el resto de campos inválidos. Si el escenario trae un valor
+mayor, queda marcado y el usuario lo ve en rojo antes de calcular.
 
-**Test:** periodo ≥ plazo → marcado, CALCULAR bloqueado o aviso visible, según
-la variante elegida.
+**Test:** periodo ≥ plazo → campo inválido, CALCULAR bloqueado y aviso; el caso
+de `create-own-amortizations` (60 meses sobre 15 años) sigue calculando igual.
 
 ### 1.3 · Espacios en blanco validan como 0 *(verificado)*
 
@@ -176,19 +179,24 @@ dejarlo explícito).
 
 **Test:** `"   "` → `NaN` → campo inválido.
 
-### 1.4 · `1.5` en Capital se interpreta como 15 — *decisión abierta 1*
+### 1.4 · `1.5` en Capital se interpreta como 15 — ✅ decidido: **(a) solo enteros**
 
 `parseIntField` (`state.js:64`) elimina `[.,\s]` (semántica heredada de
 separadores de miles del `check()` antiguo): `parseIntField('1.5') === 15` y
 `parseIntField('1,5') === 15`. En Capital, escribir `1.5` valida como **15 €**.
 
-**Opciones:**
+**Decisión del propietario (2026-11-22): las cantidades siempre deben ser
+enteros, nunca decimales.** → **(a)**: exigir dígitos limpios y marcar el campo
+en rojo si contiene `.` o `,` o espacios. Un capital mal interpretado es el error
+más caro de la aplicacion.
 
-- **(a) Recomendada:** rechazar separadores implícitos — exigir dígitos limpios y
-  marcar el campo en rojo. Un capital mal interpretado es el error más caro de
-  la app.
-- **(b) Mantener el stripping** (compatibilidad con quien teclea `1.500` para
-  mil quinientos) y solo documentarlo.
+**Alcance:** `parseIntField` se usa para Capital, Plazo, Inicio, Periodo inicial
+e importes de amortización — todos enteros por naturaleza, así que la regla
+vale para los seis. `parseFloatField` (intereses) sí sigue aceptando decimales.
+
+**Tests:** `'1.5'` → `NaN`; `'1,5'` → `NaN`; `'1 500'` → `NaN`; `'1500'` → `1500`.
+Los escenarios existentes usan enteros limpios (`150000`, `71000`), así que no
+rompen.
 
 ---
 
@@ -210,28 +218,27 @@ Causa del "termina en 2032" descrita arriba: el último `header` que se pinta es
 el del mes 108 y las filas de mes no llevan fecha, así que el año final del
 préstamo es invisible.
 
-**Fix (presentación, no cálculo):** añadir una fila de evento de cierre al
-terminar el bucle — p. ej. `kind: 'end'` → *"Fin del préstamo"* — y/o que
-`ResultsTable` muestre el año en las filas de mes. La variante mínima y más
-claro es la fila de cierre: deja explícito el último año.
+**Decisión del propietario (2026-11-22): (a) solo la fila de cierre.** Añadir
+una fila de evento al terminar el bucle — p. ej. `kind: 'end'` → *"Fin del
+préstamo"* — que deja explícito el último año. Sin año en cada fila de mes.
 
 **Test:** el resultado contiene la fila de cierre; con el escenario de
 `create-own-amortizations` se ve que termina en 2033.
 
-### 2.3 · Semántica de `initialPayment` — *decisión abierta 2*
+### 2.3 · Semántica de `initialPayment` — ✅ decidido: **(a) cuota original**
 
 `initialPayment` se captura en el mes 0 (`simulation.js:210`), **después** de
 aplicar las amortizaciones de ese mes. Con una amortización tipo `payment` en el
 mes 1 muestra la cuota ya recalculada; con tipo `plazo` la cuota no cambia, así
 que muestra la original. Semántica inconsistente entre tipos.
 
-**Opciones:**
+**Decisión del propietario (2026-11-22): mostrar la cuota original, la que
+ofrece el banco.** → capturar la anualidad **antes** de las amortizaciones del
+mes 0: "Tu cuota inicial" = la cuota de la oferta.
 
-- **(a)** Capturar la anualidad original **antes** de las amortizaciones →
-  "Tu cuota inicial" = la cuota que te ofrece el banco. Recomendada: es lo que
-  espera quien compara con su oferta.
-- **(b)** Mantener la cuota real tras amortizar, pero unificar el caso `plazo`
-  para que también refleje el cambio (hoy no lo refleja).
+**Test:** con una amortización tipo `payment` en año 1 mes 1, `initialPayment`
+igual a la anualidad del capital/plazo/tipo iniciales (y distinto de la cuota
+recalculada del mes 1).
 
 ### 2.4 · Robustez de la lib
 
@@ -371,16 +378,17 @@ Ver con `sloplint` que no se rompe nada tras limpiar.
 
 ---
 
-## Decisiones abiertas
+## Decisiones — ✅ todas resueltas (2026-11-22)
 
-1. **`1.5` en Capital** → ¿marcarlo inválido (a) o aceptar separadores (b)?
-   Recomendación: **(a)**.
-2. **`initialPayment`** → ¿cuota original del banco (a) o cuota real tras
-   amortizar (b)? Recomendación: **(a)**.
-3. **Periodo inicial ≥ plazo** → ¿bloquear el cálculo o avisar y calcular?
-   Recomendación: **marcar el campo en rojo** (consistente con el resto).
-4. **Fila de cierre de la tabla** → ¿solo "Fin del préstamo" o también año en
-   cada fila de mes? Recomendación: **fila de cierre** (mínimo y suficiente).
+1. **`1.5` en Capital** → **(a) solo enteros**: exigir dígitos limpios, marcar en
+   rojo cualquier `.`/`,`/espacio. Aplica a los seis campos enteros (Capital,
+   Plazo, Inicio, Periodo inicial, importes de amortización); los intereses
+   siguen aceptando decimales.
+2. **`initialPayment`** → **(a) cuota original del banco**: capturar la anualidad
+   antes de las amortizaciones del mes 0.
+3. **Periodo inicial ≥ plazo** → **(a) marcar en rojo y bloquear el cálculo**.
+4. **Cierre de la tabla** → **(a) solo la fila "Fin del préstamo"**, sin año en
+   cada fila de mes.
 
 ## Lo que NO se toca
 
