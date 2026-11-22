@@ -1,9 +1,9 @@
 import { useEffect, useReducer } from 'react';
 import { formatWarning, initialState, reducer } from './state.js';
-import FormularioDatos from './components/FormularioDatos.jsx';
-import Amortizaciones from './components/Amortizaciones.jsx';
-import EuriborEvolucion from './components/EuriborEvolucion.jsx';
-import ResultadoTabla from './components/ResultadoTabla.jsx';
+import MortgageForm from './components/MortgageForm.jsx';
+import Amortizations from './components/Amortizations.jsx';
+import EuriborEvolution from './components/EuriborEvolution.jsx';
+import ResultsTable from './components/ResultsTable.jsx';
 
 /**
  * Loads /escenario.json (relative path, so it also works under a subpath).
@@ -52,19 +52,19 @@ export default function App() {
     <main className="wrapper">
       <header className="top">
         <h1>Simulador de hipoteca</h1>
-        <p className="desc">
+        <p className="description">
           Calcula la cuota, compara escenarios y observa cómo las amortizaciones parciales cambian
           el plazo, la deuda y los intereses.
         </p>
       </header>
 
       <div className="workspace">
-        <FormularioDatos state={state} dispatch={dispatch} />
-        <div className="amort-workspace">
-          <Amortizaciones state={state} dispatch={dispatch} />
-          <div className="button">
+        <MortgageForm state={state} dispatch={dispatch} />
+        <div className="amortization-workspace">
+          <Amortizations state={state} dispatch={dispatch} />
+          <div className="calculate-action-wrapper">
             <a
-              id="calcular"
+              id="calculateButton"
               className="calculate-action"
               onClick={() => dispatch({ type: 'calculated' })}
               role="button"
@@ -83,7 +83,7 @@ export default function App() {
             </a>
           </div>
         </div>
-        <EuriborEvolucion state={state} dispatch={dispatch} />
+        <EuriborEvolution state={state} dispatch={dispatch} />
       </div>
 
       {warnings.length > 0 && (
@@ -94,7 +94,7 @@ export default function App() {
         </div>
       )}
 
-      {state.result && <ResultadoTabla result={state.result} startYear={state.startYear} />}
+      {state.result && <ResultsTable result={state.result} startYear={state.startYear} />}
     </main>
   );
 }

@@ -1,5 +1,5 @@
-/** Result summary + amortization table, rendered only after CALCULAR. */
-export default function ResultadoTabla({ result, startYear }) {
+/** Result summary + amortization table, rendered only after calculation. */
+export default function ResultsTable({ result, startYear }) {
   return (
     <>
       {result.initialPayment != null && (
@@ -19,8 +19,8 @@ export default function ResultadoTabla({ result, startYear }) {
         </div>
       )}
 
-      <div className="draw">
-        <div className="table_wrapper">
+       <div className="results-table-section">
+        <div className="table-scroll-container">
           <table>
             <caption>Cuadro de amortización</caption>
             <thead>
@@ -32,13 +32,11 @@ export default function ResultadoTabla({ result, startYear }) {
                 <th scope="col">Intereses</th>
               </tr>
             </thead>
-            <tbody id="tableBody">
+            <tbody id="resultsTableBody">
               {result.rows.map((row, index) => renderRow(row, index, startYear))}
             </tbody>
           </table>
         </div>
-        <div className="right"></div>
-        <div className="clear"></div>
       </div>
     </>
   );

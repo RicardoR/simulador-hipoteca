@@ -1,9 +1,9 @@
 /**
- * The DATOS box: capital, term, start year, type and the interest fields.
+ * The mortgage form: capital, term, start year, type and interest fields.
  * All values live in the reducer (`state.fields`) as strings, exactly like the
- * old DOM inputs did; validation marks the field red and blocks CALCULAR.
+ * old DOM inputs did; validation marks the field red and blocks calculation.
  */
-export default function FormularioDatos({ state, dispatch }) {
+export default function MortgageForm({ state, dispatch }) {
   const change = (name) => (event) =>
     dispatch({ type: 'field/changed', name, value: event.target.value });
 
@@ -16,7 +16,7 @@ export default function FormularioDatos({ state, dispatch }) {
   });
 
   return (
-    <div className="mainbox">
+    <div className="mortgage-form">
       <h2 className="title">Datos de la hipoteca</h2>
       <div className="form-field">
         <label htmlFor="capital">Capital</label>
@@ -52,7 +52,7 @@ export default function FormularioDatos({ state, dispatch }) {
       </div>
 
       {state.fields.type === 'variable' ? (
-        <div className="variable">
+        <div className="variable-rate-fields">
           <div className="form-field">
             <label htmlFor="variableInterestField">Interés</label>
             <div className="field-control">
@@ -64,7 +64,7 @@ export default function FormularioDatos({ state, dispatch }) {
               <span>%</span>
             </div>
           </div>
-          <fieldset className="inicial">
+          <fieldset className="initial-period-options">
             <legend className="visually-hidden">Opciones del periodo inicial</legend>
             <label className="checkbox-label">
               <input
@@ -101,7 +101,7 @@ export default function FormularioDatos({ state, dispatch }) {
           </fieldset>
         </div>
       ) : (
-        <div className="fijo">
+        <div className="fixed-rate-fields">
           <div className="form-field">
             <label htmlFor="fixedInterestField">Interés</label>
             <div className="field-control">

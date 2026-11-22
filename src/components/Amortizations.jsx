@@ -4,7 +4,7 @@
  * and the year options always follow the current term (bug #7). A year stored
  * outside the term stays visible so the simulation can warn about it.
  */
-export default function Amortizaciones({ state, dispatch }) {
+export default function Amortizations({ state, dispatch }) {
   const termYears = state.termYears;
 
   const update = (id, patch) => dispatch({ type: 'amortization/updated', id, patch });
@@ -17,16 +17,16 @@ export default function Amortizaciones({ state, dispatch }) {
   };
 
   return (
-    <div className="amort">
+    <div className="amortizations-panel">
       <h2 className="title">Amortizaciones parciales</h2>
-      <div id="amort">
+      <div id="amortizationsList">
         {state.amortizations.map((amortization) => (
-          <div className="am amort-row" key={amortization.id}>
+          <div className="amortization-row" key={amortization.id}>
             <label>
               Año
-              <span className="select-wrap anyo-wrap">
+              <span className="select-wrap year-select-wrap">
                 <select
-                  className="anyo"
+                  className="year-select"
                   value={String(amortization.year)}
                   onChange={(event) => update(amortization.id, { year: Number(event.target.value) })}
                 >
@@ -40,9 +40,9 @@ export default function Amortizaciones({ state, dispatch }) {
             </label>
             <label>
               Mes
-              <span className="select-wrap mes-wrap">
+              <span className="select-wrap month-select-wrap">
                 <select
-                  className="mes"
+                  className="month-select"
                   value={String(amortization.month)}
                   onChange={(event) => update(amortization.id, { month: Number(event.target.value) })}
                 >
@@ -58,7 +58,7 @@ export default function Amortizaciones({ state, dispatch }) {
               Capital
               <input
                 size="5"
-                className="capital"
+                className="amount-input"
                 value={amortization.amount}
                 aria-invalid={amortization.invalidAmount || undefined}
                 style={
@@ -72,9 +72,9 @@ export default function Amortizaciones({ state, dispatch }) {
             </label>
             <label className="reduction-field">
               Reducción
-              <span className="select-wrap tipo-wrap">
+              <span className="select-wrap reduction-type-wrap">
                 <select
-                  className="tipo"
+                  className="reduction-type-select"
                   value={amortization.type}
                   onChange={(event) => update(amortization.id, { type: event.target.value })}
                 >
@@ -85,7 +85,7 @@ export default function Amortizaciones({ state, dispatch }) {
             </label>
             <button
               type="button"
-              className="text-action remove-amort"
+              className="text-action remove-amortization-action"
               onClick={() => dispatch({ type: 'amortization/removed', id: amortization.id })}
             >
               Eliminar
@@ -93,11 +93,11 @@ export default function Amortizaciones({ state, dispatch }) {
           </div>
         ))}
       </div>
-      <div className="add">
+      <div className="add-amortization-action-wrapper">
         <button
-          id="addAmort"
+          id="addAmortizationButton"
           type="button"
-          className="text-action add-action"
+          className="text-action add-amortization-action"
           onClick={() => dispatch({ type: 'amortization/added' })}
         >
           Añadir amortización

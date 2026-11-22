@@ -11,7 +11,7 @@ import {
  * override (or the default series) drives the slider and calculation; raw
  * drafts let the user edit decimals without diverging from that value (bug #3).
  */
-export default function EuriborEvolucion({ state, dispatch }) {
+export default function EuriborEvolution({ state, dispatch }) {
   const sliders = [];
   for (let yearIndex = 0; yearIndex < state.termYears; yearIndex++) {
     const index = yearIndex * 12;

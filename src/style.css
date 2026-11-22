@@ -1,8 +1,4 @@
-/* Hallmark · shape: app screen · genre: editorial · theme: Almanac (deal 1/3, seed spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0) · redesign: full
- * nav: none · signature: amortization schedule · states: editable inputs, warnings, calculated results
- * axes: mid/grotesk-sans/chromatic-magenta · posture: restrained · contrast: pass · v2.0.0 */
-/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V3 · weakest: V, no prior log; the ruled schedule carries Almanac’s specific material */
-/* Hallmark · finish-review: subagent · 3 findings · 3 resolved (2 initial, 1 follow-up) */
+/* Hallmark theme: Almanac. */
 @import url("./tokens.css");
 @import url("./base.css");
 
@@ -27,7 +23,7 @@
   font-size: var(--text-3xl);
 }
 
-.desc {
+.description {
   max-width: 48ch;
   color: var(--color-ink-2);
   font-size: var(--text-lg);
@@ -41,17 +37,17 @@
   gap: var(--gap-columns);
 }
 
-.amort-workspace {
+.amortization-workspace {
   min-width: 0;
 }
 
-.mainbox,
-.amort,
+.mortgage-form,
+.amortizations-panel,
 .euribor {
   min-width: 0;
 }
 
-.mainbox {
+.mortgage-form {
   padding: var(--space-lg);
   border-top: var(--rule-bar) solid var(--color-rule-2);
   background: var(--color-paper-2);
@@ -72,18 +68,18 @@
   margin-bottom: var(--space-sm);
 }
 
-.variable .form-field {
+.variable-rate-fields .form-field {
   grid-template-columns: minmax(3rem, 0.45fr) minmax(0, 1.55fr);
   gap: var(--space-2xs);
 }
 
-.variable .field-control {
+.variable-rate-fields .field-control {
   gap: var(--space-3xs);
 }
 
 .form-field > label,
 .initial-controls > label,
-.amort-row > label {
+.amortization-row > label {
   color: var(--color-ink-2);
   font-size: var(--text-sm);
 }
@@ -133,8 +129,8 @@
 }
 
 .field-input,
-.amort-row input,
-.amort-row select,
+.amortization-row input,
+.amortization-row select,
 .euribor-value {
   min-width: 0;
   min-height: 36px;
@@ -151,16 +147,16 @@
 }
 
 .field-input:focus-visible,
-.amort-row input:focus-visible,
-.amort-row select:focus-visible,
+.amortization-row input:focus-visible,
+.amortization-row select:focus-visible,
 .euribor-value:focus-visible {
   border-color: var(--color-ink-2);
   outline-color: var(--color-focus);
 }
 
 .field-input:hover,
-.amort-row input:hover,
-.amort-row select:hover,
+.amortization-row input:hover,
+.amortization-row select:hover,
 .euribor-value:hover {
   background-color: var(--color-paper);
 }
@@ -194,12 +190,12 @@
 
 .field-input[aria-invalid="true"],
 .field-input.is-invalid,
-.amort-row input[aria-invalid="true"],
+.amortization-row input[aria-invalid="true"],
 .euribor-value[aria-invalid="true"] {
   border-color: var(--color-error);
 }
 
-.inicial {
+.initial-period-options {
   min-width: 0;
   margin: var(--space-md) 0 0;
   padding: var(--space-md) 0 0;
@@ -237,18 +233,18 @@
   min-width: 0;
 }
 
-.amort {
+.amortizations-panel {
   padding: var(--space-lg);
   border-top: var(--rule-bar) solid var(--color-ink);
   background: var(--color-sheet);
 }
 
-.amort .title {
+.amortizations-panel .title {
   padding-bottom: var(--space-sm);
   border-bottom: var(--rule-bar) solid var(--color-rule-2);
 }
 
-.amort-row {
+.amortization-row {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
@@ -258,40 +254,40 @@
   border-bottom: var(--rule-hair) solid var(--color-rule);
 }
 
-.amort-row > label {
+.amortization-row > label {
   display: grid;
   min-width: 4rem;
   gap: var(--space-2xs);
 }
 
-.amort-row .amount-field {
+.amortization-row .amount-field {
   grid-template-columns: auto minmax(7rem, 1fr) auto;
   align-items: center;
 }
 
-.amort-row .reduction-field {
+.amortization-row .reduction-field {
   min-width: 7rem;
 }
 
-.amort-row .anyo-wrap,
-.amort-row .mes-wrap {
+.amortization-row .year-select-wrap,
+.amortization-row .month-select-wrap {
   width: 5rem;
 }
 
-.amort-row .anyo,
-.amort-row .mes {
+.amortization-row .year-select,
+.amortization-row .month-select {
   width: 100%;
 }
 
-.amort-row .capital {
+.amortization-row .amount-input {
   width: 7rem;
 }
 
-.amort-row .tipo-wrap {
+.amortization-row .reduction-type-wrap {
   width: 7rem;
 }
 
-.amort-row .tipo {
+.amortization-row .reduction-type-select {
   width: 100%;
   font-family: var(--font-display);
 }
@@ -357,17 +353,17 @@
   color: var(--color-success);
 }
 
-.remove-amort {
+.remove-amortization-action {
   margin-left: auto;
 }
 
-.add {
+.add-amortization-action-wrapper {
   display: flex;
   justify-content: flex-end;
   padding-top: var(--space-sm);
 }
 
-.add-action {
+.add-amortization-action {
   color: var(--color-accent-2);
 }
 
@@ -472,7 +468,7 @@
   outline-offset: 2px;
 }
 
-.button {
+.calculate-action-wrapper {
   display: flex;
   justify-content: flex-end;
   padding-block: var(--space-lg);
@@ -542,25 +538,25 @@
   font-weight: 500;
 }
 
-.draw {
+.results-table-section {
   min-width: 0;
   margin-top: var(--space-xl);
 }
 
-.table_wrapper {
+.table-scroll-container {
   width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
 
-.draw table {
+.results-table-section table {
   width: 100%;
   min-width: 44rem;
   border-collapse: collapse;
   background: var(--color-sheet);
 }
 
-.draw caption {
+.results-table-section caption {
   padding: var(--space-sm) 0;
   color: var(--color-ink);
   font-family: var(--font-display);
@@ -569,7 +565,7 @@
   text-align: left;
 }
 
-.draw thead th {
+.results-table-section thead th {
   padding: var(--space-sm) var(--space-xs);
   border-bottom: var(--rule-bar) solid var(--color-rule-2);
   color: var(--color-muted);
@@ -579,17 +575,17 @@
   white-space: nowrap;
 }
 
-.draw thead th:first-child {
+.results-table-section thead th:first-child {
   text-align: left;
 }
 
-.draw tbody td {
+.results-table-section tbody td {
   padding: var(--space-xs);
   border-bottom: var(--rule-hair) solid var(--color-rule);
   color: var(--color-ink-2);
 }
 
-.draw tbody td.num {
+.results-table-section tbody td.num {
   font-family: var(--font-outlier);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
@@ -597,11 +593,11 @@
   white-space: nowrap;
 }
 
-.draw tbody tr > td:first-child {
+.results-table-section tbody tr > td:first-child {
   text-align: left;
 }
 
-.draw tbody .table-event td {
+.results-table-section tbody .table-event td {
   padding-block: var(--space-sm);
   font-family: var(--font-body);
   font-size: var(--text-sm);
@@ -627,11 +623,6 @@
   color: inherit;
 }
 
-.draw .right,
-.draw .clear {
-  display: none;
-}
-
 @media (hover: hover) {
   .euribor-toggle:hover {
     color: var(--color-accent-2);
@@ -654,7 +645,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .amort-workspace {
+  .amortization-workspace {
     display: contents;
   }
 
@@ -664,7 +655,7 @@
     overflow: visible;
   }
 
-  .button {
+  .calculate-action-wrapper {
     grid-row: 4;
   }
 
@@ -687,7 +678,7 @@
     overflow-y: auto;
   }
 
-  .button {
+  .calculate-action-wrapper {
     justify-content: flex-start;
   }
 }
@@ -701,12 +692,12 @@
     font-size: var(--text-2xl);
   }
 
-  .desc {
+  .description {
     font-size: var(--text-md);
   }
 
-  .mainbox,
-  .amort {
+  .mortgage-form,
+  .amortizations-panel {
     padding: var(--space-md);
   }
 
@@ -718,11 +709,11 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
-  .amort-row {
+  .amortization-row {
     gap: var(--space-sm);
   }
 
-  .remove-amort {
+  .remove-amortization-action {
     margin-left: 0;
   }
 
@@ -731,7 +722,7 @@
     gap: var(--space-sm);
   }
 
-  .draw table {
+  .results-table-section table {
     min-width: 42rem;
   }
 }
