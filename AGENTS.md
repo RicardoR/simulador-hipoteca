@@ -2,7 +2,13 @@
 
 Static Spanish-language mortgage simulator. **React + Vite** frontend, npm only for Vitest tests, no CI. `src/lib/simulation.js` stays DOM-free and framework-free on purpose.
 
-> **Active work plan:** `plan/fix-issues-and-refactor.md`. Tramo A (Fases 0/1/3: tests, 7 bugs, JSON) is merged in master; Tramo B (Fase 2 React + Fase 4 limpieza) lives on the `react-rewrite` branch. Read the plan before touching `calculateSimulation` or the calculation order.
+> **Active work plan:** `plan/redesign.md` (redesign with Hallmark, branch `redesign-app`). The previous plan, `plan/fix-issues-and-refactor.md` (Tramo A + B), is fully merged in master. Read a plan before touching `calculateSimulation`, the calculation order, or the UI system.
+
+## Design
+
+- **For any UI/design work, use the Hallmark skill** (`.agents/skills/hallmark`, invoke with `/hallmark`). It owns the visual system: tokens, colour, type, layout gates. Load it before restyling or building UI.
+- Design checks: `node .agents/skills/hallmark/scripts/sloplint.mjs <target> --render --url http://localhost:5173/` (needs the dev server; `puppeteer-core` is a devDependency, Chrome on the machine). Without Chrome it runs static gates only — never claim a render pass that did not run.
+- Hallmark's redesign verb (`/hallmark redesign <path>`) keeps content and wiring: `state.js`, `simulation.js`, handlers and the 16 tests are untouchable by it.
 
 ## Running
 
