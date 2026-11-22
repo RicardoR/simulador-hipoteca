@@ -1,7 +1,7 @@
 /**
  * Single source of truth for the React frontend: one reducer owns the form,
- * the euribor overrides and the amortizations, so the value a slider shows is
- * always the value the simulation calculates with (bug #3) and amortizations
+ * euribor overrides and editing drafts, and amortizations. The last valid
+ * Euribor value drives both controls and the calculation (bug #3); amortizations
  * can never overwrite each other (bug #2).
  *
  * `src/lib/simulation.js` is imported for its side effect only (it exposes
@@ -20,6 +20,10 @@ export const EURIBOR_SERIES = [
   3.7, 3.8, 3.8, 3.9, 4.1, 4, 4.1, 4.1, 4.3, 4.3, 4.2, 4.3, 4.4, 4.5,
   4.2, 4.3, 4.4, 4.1, 4.3, 4.5, 4.4, 4.1, 4, 3.7,
 ];
+
+export const EURIBOR_MIN = -0.5;
+export const EURIBOR_MAX = 15;
+export const EURIBOR_STEP = 0.1;
 
 export const SCENARIO_WARNING =
   'Aviso: no se pudo cargar escenario.json; se están usando los valores por defecto.';
@@ -83,6 +87,14 @@ export function isValidAmortizationAmount(value) {
   return Number.isFinite(parseIntField(value)) && parseIntField(value) >= 0;
 }
 
+export function isValidEuriborValue(value) {
+  if (typeof value !== 'string' || value.trim() === '') return false;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < EURIBOR_MIN || parsed > EURIBOR_MAX) return false;
+  const stepPosition = (parsed - EURIBOR_MIN) / EURIBOR_STEP;
+  return Math.abs(stepPosition - Math.round(stepPosition)) < 1e-8;
+}
+
 export function initialState() {
   const invalid = {};
   Object.keys(FIELD_RULES).forEach((name) => {
@@ -97,6 +109,7 @@ export function initialState() {
     termYears: parseInt(DEFAULT_FIELDS.years, 10),
     startYear: parseInt(DEFAULT_FIELDS.startYear, 10),
     euriborOverrides: {},
+    euriborDrafts: {},
     euriborOpen: false,
     amortizations: [],
     nextAmortizationId: 1,
@@ -172,6 +185,7 @@ function applyScenario(state, scenario) {
     invalid,
     termYears,
     startYear,
+    euriborDrafts: {},
     amortizations,
     nextAmortizationId: nextId,
     result: null,
@@ -214,7 +228,12 @@ function buildSimulationInput(state) {
 
 export function hasInvalidFields(state) {
   if (Object.values(state.invalid).some(Boolean)) return true;
-  return state.amortizations.some((amortization) => amortization.invalidAmount);
+  if (state.amortizations.some((amortization) => amortization.invalidAmount)) return true;
+  if (state.fields.type !== 'variable') return false;
+  return Object.entries(state.euriborDrafts).some(
+    ([index, value]) =>
+      Math.floor(Number(index) / 12) < state.termYears && !isValidEuriborValue(value)
+  );
 }
 
 /** Every data change invalidates the last result: no stale tables. */
@@ -245,7 +264,8 @@ export function reducer(state, action) {
       const { name, value } = action;
       const fields = { ...state.fields, [name]: value };
       const invalid = { ...state.invalid, [name]: !isValidField(name, value) };
-      const next = withFreshResult({ ...state, fields, invalid });
+      const euriborDrafts = name === 'type' && value === 'fixed' ? {} : state.euriborDrafts;
+      const next = withFreshResult({ ...state, fields, invalid, euriborDrafts });
       if (name === 'years' && !invalid.years) {
         next.termYears = Math.trunc(parseFloatField(value));
       }
@@ -255,11 +275,30 @@ export function reducer(state, action) {
       return next;
     }
 
-    case 'euribor/changed':
+    case 'euribor/changed': {
+      const euriborDrafts = { ...state.euriborDrafts };
+      delete euriborDrafts[action.index];
       return withFreshResult({
         ...state,
         euriborOverrides: { ...state.euriborOverrides, [action.index]: action.value },
+        euriborDrafts,
       });
+    }
+
+    case 'euribor/inputChanged': {
+      const euriborDrafts = { ...state.euriborDrafts, [action.index]: action.value };
+      const euriborOverrides = isValidEuriborValue(action.value)
+        ? { ...state.euriborOverrides, [action.index]: Number(action.value) }
+        : state.euriborOverrides;
+      return withFreshResult({ ...state, euriborDrafts, euriborOverrides });
+    }
+
+    case 'euribor/inputCommitted': {
+      if (!isValidEuriborValue(state.euriborDrafts[action.index])) return state;
+      const euriborDrafts = { ...state.euriborDrafts };
+      delete euriborDrafts[action.index];
+      return { ...state, euriborDrafts };
+    }
 
     case 'euribor/toggled':
       return { ...state, euriborOpen: !state.euriborOpen };
