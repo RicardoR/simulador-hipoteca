@@ -29,7 +29,7 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | | Falta la **cabecera del último año parcial** → la tabla parece terminar un año antes | ✅ Hecho (fila `kind: 'end'` "Fin del préstamo") |
 | | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decidido: cuota original** | ✅ Hecho (captura antes del bucle) |
 | | Robustez de la lib: euríbor vacío en tipo variable → NaN (inalcanzable desde UI) | ✅ Hecho (serie ausente → euríbor 0) |
-| **3 · Tests nuevos** | Casos límite de simulación + tests de UI faltantes (teclado, borrar amortización, `startYear`, `startDate` inválido) | ⬜ Pendiente |
+| **3 · Tests nuevos** | Casos límite de simulación + tests de UI faltantes (teclado, borrar amortización, `startYear`, `startDate` inválido) | ✅ Hecho (capital 0 y consistencia ya en Fases 0/2; nuevos: plazo 1 año, teclado, eliminar, importe inválido, Inicio, escenario malformado) |
 | **4 · Accesibilidad y perf** | "Calcular": `<a role="button">` → `<button>` real con `aria-disabled` | ⬜ Pendiente |
 | | Nombres accesibles de "Eliminar" (hoy todos dicen lo mismo) | ⬜ Pendiente |
 | | `aria-describedby` en los campos con error | ⬜ Pendiente |
