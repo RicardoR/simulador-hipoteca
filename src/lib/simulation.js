@@ -140,7 +140,10 @@
     let monthlyPayment = calculateMonthlyPayment(pendingAmount, remainingMonths, interest);
 
     while (remainingMonths > 0 && pendingAmount > 0) {
-      const loanYear = Math.abs(month / 12);
+      // Fase 2.1: floored — with an initial period that is not a multiple of
+      // 12 the header used to render a fractional year ('Año 2027.5').
+      // Math.abs was a no-op here: month is never negative.
+      const loanYear = Math.floor(month / 12);
       if (typeof euribor[month] == 'number') {
         euriborValue = euribor[month];
       }

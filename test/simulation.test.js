@@ -261,16 +261,33 @@ describe('characterization — variable type: the initial fixed period', () => {
     expect(result.rows[headerIndex - 1].kind).toBe('period-end');
     expect(result.rows.filter((row) => row.kind === 'period-end')).toHaveLength(1);
 
-    // known quirk, pinned on purpose: an initial period that is not a multiple
-    // of 12 yields a fractional loanYear ('Año … año 1.5 del préstamo').
-    // Fase 2.1 of plan/fix-and-polish.md will floor it.
-    expect(result.rows[headerIndex].loanYear).toBe(1.5);
+    // Fixed by Fase 2.1 of plan/fix-and-polish.md: the loan year is floored
+    // (it used to render as 1.5 — 'Año … año 1.5 del préstamo').
+    expect(result.rows[headerIndex].loanYear).toBe(1);
     // the review reuses the last euribor read (index 12) until the next
     // multiple of 12
     expect(result.rows[headerIndex].euribor).toBe(3);
 
     // month 19 already runs at the variable rate: 0.5 + euribor[12] = 3.5%
     expect(rows[18].interest).toBeCloseTo(rows[17].balance * periodRate(3.5), 6);
+  });
+
+  it('every header shows a whole loan year (Fase 2.1)', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 10, 0),
+      type: 'variable',
+      euriborSpread: 0.5,
+      initialPeriodActive: true,
+      initialFixedInterest: 1.25,
+      initialPeriodMonths: 18,
+      euribor: sparseEuribor([2, 3, 4, 2.5, 3.5, 3, 2.8, 3.2, 3.6, 3.1]),
+    });
+
+    const loanYears = result.rows
+      .filter((row) => row.kind === 'header')
+      .map((row) => row.loanYear);
+    expect(loanYears.length).toBeGreaterThan(0);
+    for (const loanYear of loanYears) expect(Number.isInteger(loanYear)).toBe(true);
   });
 });
 
