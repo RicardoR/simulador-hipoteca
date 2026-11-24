@@ -261,6 +261,33 @@ describe('amortization editing in the UI (Fase 3.2)', () => {
   });
 });
 
+describe('the Inicio field drives the year labels (Fase 3.2)', () => {
+  it('the table headers and euribor labels follow startYear', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // first header at month 12 → loan year 1 → startYear + 1
+    const firstHeader = document.querySelector('#resultsTableBody .table-event--year');
+    expect(firstHeader.textContent).toContain(`Año ${new Date().getFullYear() + 1}`);
+
+    fireEvent.change(document.getElementById('startYearField'), { target: { value: '2030' } });
+    expect(document.getElementById('resultsTableBody')).toBeNull(); // editing clears the result
+    expect(document.querySelector('#euribor .year').textContent).toBe('2030');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() =>
+      expect(document.querySelectorAll('#resultsTableBody .table-event--year').length).toBeGreaterThan(0)
+    );
+    expect(document.querySelector('#resultsTableBody .table-event--year').textContent).toContain(
+      'Año 2031'
+    );
+  });
+});
+
 describe('the calculate control works from the keyboard (Fase 3.2)', () => {
   it('calculates on Enter and on Space (space acts on keyup, like a native button)', async () => {
     mockFetchScenario(null);
