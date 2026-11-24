@@ -121,7 +121,10 @@
     const fixedMonths = hasInitialPeriod ? initialPeriodMonths : 12;
     let remainingMonths = years * 12;
     let interest;
-    let euriborValue = euribor[0];
+    // Fase 2.4: a variable mortgage without a euribor series used to produce
+    // spread + undefined → NaN in the whole table. The lib is pure and
+    // self-contained, so a missing series defaults to a 0% euribor.
+    let euriborValue = typeof euribor[0] == 'number' ? euribor[0] : 0;
     let pendingAmount = capital;
     let totalInterest = 0;
     let initialPayment = null;

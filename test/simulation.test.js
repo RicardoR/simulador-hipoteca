@@ -374,4 +374,22 @@ describe('characterization — amortization reductions', () => {
     const sum = monthRows(result).reduce((acc, row) => acc + row.interest, 0);
     expect(result.totalInterest).toBeCloseTo(sum, 8);
   });
+
+  it('a variable mortgage without euribor series runs at the spread, not NaN (Fase 2.4)', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 5, 0),
+      type: 'variable',
+      euriborSpread: 1.5,
+      euribor: [],
+    });
+    const rows = monthRows(result);
+
+    // the euribor defaults to 0: 0% euribor + 1.5% spread
+    expect(rows[0].payment).toBeCloseTo(annuity(100000, 60, 1.5), 6);
+    expect(
+      rows.every((row) =>
+        [row.payment, row.balance, row.principal, row.interest].every((value) => !Number.isNaN(value))
+      )
+    ).toBe(true);
+  });
 });
