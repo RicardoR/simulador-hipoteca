@@ -113,9 +113,15 @@ export function isValidAmortizationAmount(value) {
   return Number.isFinite(parseIntField(value)) && parseIntField(value) >= 0;
 }
 
+/** The euribor draft is typed by hand: a decimal comma, like in every other
+ * field of this UI (Fase 6.1 of plan/fix-and-polish.md). */
+function parseEuriborValue(value) {
+  return Number(String(value).replace(',', '.'));
+}
+
 export function isValidEuriborValue(value) {
   if (typeof value !== 'string' || value.trim() === '') return false;
-  const parsed = Number(value);
+  const parsed = parseEuriborValue(value);
   if (!Number.isFinite(parsed) || parsed < EURIBOR_MIN || parsed > EURIBOR_MAX) return false;
   const stepPosition = (parsed - EURIBOR_MIN) / EURIBOR_STEP;
   return Math.abs(stepPosition - Math.round(stepPosition)) < 1e-8;
@@ -342,7 +348,7 @@ export function reducer(state, action) {
     case 'euribor/inputChanged': {
       const euriborDrafts = { ...state.euriborDrafts, [action.index]: action.value };
       const euriborOverrides = isValidEuriborValue(action.value)
-        ? { ...state.euriborOverrides, [action.index]: Number(action.value) }
+        ? { ...state.euriborOverrides, [action.index]: parseEuriborValue(action.value) }
         : state.euriborOverrides;
       return withFreshResult({ ...state, euriborDrafts, euriborOverrides });
     }

@@ -118,14 +118,14 @@ describe('isValidEuriborValue (characterization)', () => {
     expect(isValidEuriborValue('abc')).toBe(false);
   });
 
-  it('tolerates float noise on the step grid; a comma is rejected today', () => {
+  it('tolerates float noise on the step grid and accepts the decimal comma', () => {
     // (2.2 + 0.5) / 0.1 is not exactly 27 in floating point: the epsilon
     // in the implementation keeps on-step values valid.
     expect(isValidEuriborValue('2.2')).toBe(true);
     expect(isValidEuriborValue('8.7')).toBe(true);
-    // Known quirk, pinned on purpose: a comma is rejected here while every
-    // other numeric field accepts it (gap noted in plan/fix-and-polish.md).
-    expect(isValidEuriborValue('5,4')).toBe(false);
+    // Fixed by Fase 6.1 of plan/fix-and-polish.md (it used to be rejected):
+    // a comma is normalized like in every other numeric field.
+    expect(isValidEuriborValue('5,4')).toBe(true);
     // The draft always comes from an input, so numbers are not accepted.
     expect(isValidEuriborValue(5.4)).toBe(false);
   });
@@ -287,6 +287,11 @@ describe('reducer — euribor actions (characterization)', () => {
   it('euribor/inputChanged keeps the draft and only commits valid values to the override', () => {
     let state = reducer(initialState(), { type: 'euribor/inputChanged', index: 0, value: '5.4' });
     expect(state.euriborDrafts[0]).toBe('5.4');
+    expect(state.euriborOverrides[0]).toBe(5.4);
+
+    // a comma is normalized, not NaN (Fase 6.1)
+    state = reducer(state, { type: 'euribor/inputChanged', index: 0, value: '5,4' });
+    expect(state.euriborDrafts[0]).toBe('5,4');
     expect(state.euriborOverrides[0]).toBe(5.4);
 
     state = reducer(state, { type: 'euribor/inputChanged', index: 0, value: '2.25' });
