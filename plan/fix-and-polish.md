@@ -25,10 +25,10 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | | `initialPeriodMonths` **sin máximo**: ≥ plazo desactiva en silencio todo el tipo variable (`state.js:60`) | ✅ Hecho (regla cruzada con el plazo, también en `applyScenario`) |
 | | Espacios en blanco validan como 0 % (`parseFloatField`, `state.js:69`) | ✅ Hecho |
 | | `1.5` en Capital se interpreta como 15 (`parseIntField`, `state.js:64`) — **decidido: solo enteros** | ✅ Hecho (incluye Plazo como regla `int` e importes de escenario marcados) |
-| **2 · Bugs de cálculo** | Cabeceras con **año fraccionario** ("Año 2027.5") (`simulation.js:143`) | ⬜ Pendiente |
-| | Falta la **cabecera del último año parcial** → la tabla parece terminar un año antes | ⬜ Pendiente |
-| | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decidido: cuota original** | ⬜ Pendiente |
-| | Robustez de la lib: euríbor vacío en tipo variable → NaN (inalcanzable desde UI) | ⬜ Pendiente |
+| **2 · Bugs de cálculo** | Cabeceras con **año fraccionario** ("Año 2027.5") (`simulation.js:143`) | ✅ Hecho (`Math.floor`) |
+| | Falta la **cabecera del último año parcial** → la tabla parece terminar un año antes | ✅ Hecho (fila `kind: 'end'` "Fin del préstamo") |
+| | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decidido: cuota original** | ✅ Hecho (captura antes del bucle) |
+| | Robustez de la lib: euríbor vacío en tipo variable → NaN (inalcanzable desde UI) | ✅ Hecho (serie ausente → euríbor 0) |
 | **3 · Tests nuevos** | Casos límite de simulación + tests de UI faltantes (teclado, borrar amortización, `startYear`, `startDate` inválido) | ⬜ Pendiente |
 | **4 · Accesibilidad y perf** | "Calcular": `<a role="button">` → `<button>` real con `aria-disabled` | ⬜ Pendiente |
 | | Nombres accesibles de "Eliminar" (hoy todos dicen lo mismo) | ⬜ Pendiente |
