@@ -454,6 +454,7 @@ describe('reducer — calculated and scenario actions (characterization)', () =>
     expect(next.fields.years).toBe('10');
     expect(next.fields.type).toBe('fixed');
     expect(next.fields.fixedInterest).toBe('3.1');
+    expect(next.fields.startMonth).toBe('6'); // from startDate 2023-06-01
     expect(next.termYears).toBe(10);
     expect(next.startYear).toBe(2023);
     expect(next.euriborDrafts).toEqual({});
@@ -478,6 +479,8 @@ describe('reducer — calculated and scenario actions (characterization)', () =>
     expect(next.fields.capital).toBe('150000');
     expect(next.fields.years).toBe('25');
     expect(next.startYear).toBe(state.startYear);
+    // the start month is a select, so it is never invalid and keeps its value
+    expect(next.fields.startMonth).toBe(state.fields.startMonth);
   });
 
   it('scenario/loaded flags a non-integer amortization amount instead of misparsing it', () => {

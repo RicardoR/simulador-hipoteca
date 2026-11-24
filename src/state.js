@@ -44,6 +44,7 @@ const DEFAULT_FIELDS = {
   capital: '150000',
   years: '25',
   startYear: String(new Date().getFullYear()),
+  startMonth: String(new Date().getMonth() + 1),
   type: 'variable',
   fixedInterest: '2.25',
   euriborSpread: '1.5',
@@ -64,6 +65,8 @@ const FIELD_RULES = {
   // other amount field — '12.5' years would truncate to 12 while shown.
   years: { kind: 'int', min: 1, max: 50 },
   startYear: { kind: 'int', min: 1900, max: 2200 },
+  // The start month is a select (always valid); it seeds from startDate.
+  startMonth: { kind: 'int', min: 1, max: 12 },
   fixedInterest: { kind: 'number', min: 0 },
   euriborSpread: { kind: 'number', min: 0 },
   initialFixedInterest: { kind: 'number', min: 0 },
@@ -174,6 +177,7 @@ function applyScenario(state, scenario) {
     const startDate = new Date(scenario.startDate);
     if (!isNaN(startDate.getTime())) {
       setField('startYear', String(startDate.getFullYear()));
+      setField('startMonth', String(startDate.getMonth() + 1));
       startYear = startDate.getFullYear();
     }
   }

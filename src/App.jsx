@@ -103,7 +103,13 @@ export default function App() {
         </div>
       )}
 
-      {state.result && <ResultsTable result={state.result} startYear={state.startYear} />}
+      {state.result && (
+        <ResultsTable
+          result={state.result}
+          startMonth={Number(state.fields.startMonth)}
+          startYear={state.startYear}
+        />
+      )}
     </main>
   );
 }
