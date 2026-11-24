@@ -67,7 +67,9 @@ export function parseIntField(value) {
 }
 
 export function parseFloatField(value) {
-  const normalized = String(value).replace(',', '.');
+  // Fase 1.3 of plan/fix-and-polish.md: trim first — Number('   ') === 0 used
+  // to let a blank field through as 0% interest.
+  const normalized = String(value).trim().replace(',', '.');
   if (normalized === '') return NaN;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : NaN;

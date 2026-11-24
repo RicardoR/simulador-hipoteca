@@ -247,6 +247,20 @@ describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => 
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
   });
 
+  it('a whitespace-only interest field is invalid instead of 0% (Fase 1.3)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const interest = document.getElementById('variableInterestField');
+    fireEvent.change(interest, { target: { value: '   ' } });
+    expect(interest.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+  });
+
   it('blocks the calculation when the initial period reaches the term (Fase 1.2)', async () => {
     mockFetchScenario(null);
     render(<App />);

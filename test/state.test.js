@@ -47,11 +47,13 @@ describe('parseFloatField (characterization)', () => {
     expect(parseFloatField('-0.5')).toBe(-0.5);
   });
 
-  it('is strict about the empty string but lenient about whitespace', () => {
+  it('is strict about the empty string and about whitespace-only input', () => {
     expect(parseFloatField('')).toBe(NaN);
-    // Known quirk, pinned on purpose: Number('   ') === 0, so a blank field
-    // reaches the calculation as 0% interest. Fase 1.3 trims before validating.
-    expect(parseFloatField('   ')).toBe(0);
+    // Fixed by Fase 1.3 of plan/fix-and-polish.md (it used to parse as 0):
+    // whitespace is trimmed before validating, so a blank field is invalid.
+    expect(parseFloatField('   ')).toBe(NaN);
+    // Edge whitespace is harmless.
+    expect(parseFloatField(' 2,25 ')).toBe(2.25);
   });
 
   it('delegates to Number(), so exponent and sign forms pass through', () => {
