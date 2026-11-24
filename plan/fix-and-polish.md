@@ -39,6 +39,10 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | | `AGENTS.md` (nombres de componentes, "16 tests", `npm test -- test/`), `simulation.js:8`, `state.js:16` | ✅ Hecho |
 | | `.idea/` fuera del tracking + `.gitignore`; exports sin usar de `state.js`; `README.md` | ✅ Hecho (exports: se quedan, los consume `test/state.test.js`; `SCENARIO_WARNING` ahora asertado) |
 | | Casillas de `plan/redesign-personal-branches.md` y Fase 4 de `plan/redesign.md` (trabajo ya hecho) | ✅ Hecho |
+| **6 · Huecos del análisis** | Euríbor escrito a mano **rechaza la coma** (`isValidEuriborValue`, `state.js:90`) | ⬜ Pendiente |
+| | Sintaxis de los campos decimales sin definir (`parseFloatField`: `1e3` → 1000, `+3` → 3) | ⬜ Pendiente |
+| | Colisión de `aria-label` en "Eliminar" (dos filas mismo año/mes suenan igual) | ⬜ Pendiente |
+| | Path UI del aviso `amortization-exceeds-balance` (solo testeado a nivel lib) | ⬜ Pendiente |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
@@ -378,6 +382,55 @@ Ver con `sloplint` que no se rompe nada tras limpiar.
 
 ---
 
+## Fase 6 · Huecos del análisis (añadida el 2026-11-24)
+
+Puntos que la revisión del plan contra el código real detectó y que no estaban
+cubiertos por las Fases 0-5. Se trabaja en la misma rama, con el mismo ritmo.
+
+### 6.1 · El euríbor escrito a mano rechaza la coma *(verificado)*
+
+`isValidEuriborValue` (`state.js:90`) valida con `Number(value)` sin normalizar:
+`'5,4'` → inválido, mientras todos los demás campos numéricos aceptan coma vía
+`parseFloatField` (misma familia que el bug 1.3). Ojo: hay que normalizar
+también en `euribor/inputChanged` (`Number(action.value)` daría `NaN` como
+override aunque la validación pasara).
+
+**Fix:** normalizar la coma a punto antes de `Number()`, en ambos sitios.
+
+**Tests:** `'5,4'` → válido y override `5.4`; giro del test de caracterización
+que fijaba el rechazo.
+
+### 6.2 · Sintaxis de los campos decimales sin definir *(verificado)*
+
+`parseFloatField` delega en `Number()`: `'1e3'` → 1000 y `'+3'` → 3 son válidos
+hoy. Es el gemelo decimal de la decisión 1 (enteros estrictos).
+
+**Fix:** sintaxis explícita `^\d+([.,]\d+)?$` tras `trim()` — dígitos con
+separador decimal opcional; nada de signos ni exponentes. Los intereses son
+`min: 0`, así que no se pierde ningún valor legítimo.
+
+**Tests:** `'1e3'` → NaN; `'+3'` → NaN; `'-0.5'` → NaN (giro deliberado de la
+caracterización); `'2.25'`/`'2,25'` → 2.25.
+
+### 6.3 · Colisión de `aria-label` en "Eliminar"
+
+Dos amortizaciones en el mismo año y mes se anuncian igual aunque sus
+importes las distingan.
+
+**Fix:** incluir el importe en el nombre accesible: "Eliminar la amortización
+de {amount} € del año X, mes Y". Actualizar la aserción del test de la Fase 4.2.
+
+### 6.4 · Path UI del aviso `amortization-exceeds-balance`
+
+`formatWarning` se testea unitariamente (Fase 0.2), pero nadie cubre que el
+aviso llegue a `#warningsContainer` desde la app (bug #4 solo está testeado a
+nivel lib).
+
+**Test (UI):** amortización que supera el saldo → la tabla cierra el préstamo
+y el aviso "supera el saldo pendiente" aparece en el contenedor de avisos.
+
+---
+
 ## Decisiones — ✅ todas resueltas (2026-11-22)
 
 1. **`1.5` en Capital** → **(a) solo enteros**: exigir dígitos limpios, marcar en
@@ -389,6 +442,10 @@ Ver con `sloplint` que no se rompe nada tras limpiar.
 3. **Periodo inicial ≥ plazo** → **(a) marcar en rojo y bloquear el cálculo**.
 4. **Cierre de la tabla** → **(a) solo la fila "Fin del préstamo"**, sin año en
    cada fila de mes.
+5. **Sintaxis decimal estricta** (Fase 6.2, 2026-11-24): dígitos con separador
+   decimal opcional, sin signos ni exponentes — el gemelo de la decisión 1.
+6. **Euríbor con coma** (Fase 6.1, 2026-11-24): aceptar la coma decimal como en
+   el resto de campos, normalizándola también al guardar el override.
 
 ## Lo que NO se toca
 
