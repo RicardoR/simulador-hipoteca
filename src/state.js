@@ -83,6 +83,17 @@ export function isValidField(name, value) {
   return true;
 }
 
+/**
+ * Cross-field rule (Fase 1.2 of plan/fix-and-polish.md): the initial fixed
+ * period must be strictly shorter than the whole term, or no annual review
+ * would ever happen — the interest would stay fixed for the whole loan and
+ * the euribor overrides would be silently ignored.
+ */
+export function isValidInitialPeriod(value, termYears) {
+  const parsed = parseIntField(value);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed < termYears * 12;
+}
+
 export function isValidAmortizationAmount(value) {
   return Number.isFinite(parseIntField(value)) && parseIntField(value) >= 0;
 }
@@ -156,6 +167,10 @@ function applyScenario(state, scenario) {
   if (typeof scenario.initialPeriodActive === 'boolean') {
     setField('initialPeriodActive', scenario.initialPeriodActive);
   }
+
+  // Cross-field rule (Fase 1.2): an out-of-range initial period loads marked
+  // so the user sees it in red before the first calculation.
+  invalid.initialPeriodMonths = !isValidInitialPeriod(fields.initialPeriodMonths, termYears);
 
   const amortizations = [];
   let nextId = state.nextAmortizationId;
@@ -279,6 +294,15 @@ export function reducer(state, action) {
       const fields = { ...state.fields, [name]: value };
       const invalid = { ...state.invalid, [name]: !isValidField(name, value) };
       const euriborDrafts = name === 'type' && value === 'fixed' ? {} : state.euriborDrafts;
+
+      // Cross-field rule (Fase 1.2): the initial period is re-checked against
+      // the term when either of the two changes.
+      if (name === 'initialPeriodMonths' || name === 'years') {
+        const termYears =
+          name === 'years' && !invalid.years ? Math.trunc(parseFloatField(value)) : state.termYears;
+        invalid.initialPeriodMonths = !isValidInitialPeriod(fields.initialPeriodMonths, termYears);
+      }
+
       const next = withFreshResult({ ...state, fields, invalid, euriborDrafts });
       if (name === 'years' && !invalid.years) {
         next.termYears = Math.trunc(parseFloatField(value));

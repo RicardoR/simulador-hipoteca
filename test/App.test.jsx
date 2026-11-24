@@ -246,6 +246,21 @@ describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => 
     fireEvent.click(document.getElementById('calculateButton'));
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
   });
+
+  it('blocks the calculation when the initial period reaches the term (Fase 1.2)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('yearsField'), { target: { value: '10' } });
+    const period = document.getElementById('fixedMonthsField');
+    fireEvent.change(period, { target: { value: '120' } }); // 120 >= 10 * 12
+    expect(period.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+  });
 });
 
 describe('characterization — the reference numbers through the UI', () => {

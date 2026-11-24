@@ -308,6 +308,58 @@ describe('reducer — euribor actions (characterization)', () => {
   });
 });
 
+describe('reducer — the initial period cannot reach the whole term (Fase 1.2)', () => {
+  it('marks initialPeriodMonths invalid when it is >= years * 12', () => {
+    let state = reducer(initialState(), {
+      type: 'field/changed',
+      name: 'initialPeriodMonths',
+      value: '300', // 25 years = 300 months
+    });
+    expect(state.invalid.initialPeriodMonths).toBe(true);
+
+    state = reducer(state, { type: 'field/changed', name: 'initialPeriodMonths', value: '299' });
+    expect(state.invalid.initialPeriodMonths).toBe(false);
+
+    state = reducer(state, { type: 'field/changed', name: 'initialPeriodMonths', value: '0' });
+    expect(state.invalid.initialPeriodMonths).toBe(false);
+  });
+
+  it('re-checks the initial period when the term changes', () => {
+    let state = reducer(initialState(), { type: 'field/changed', name: 'initialPeriodMonths', value: '12' });
+    expect(state.invalid.initialPeriodMonths).toBe(false);
+
+    state = reducer(state, { type: 'field/changed', name: 'years', value: '1' }); // 12 >= 12
+    expect(state.invalid.initialPeriodMonths).toBe(true);
+    expect(state.termYears).toBe(1);
+
+    state = reducer(state, { type: 'field/changed', name: 'years', value: '2' }); // 12 < 24
+    expect(state.invalid.initialPeriodMonths).toBe(false);
+  });
+
+  it('a scenario with an out-of-range period loads it marked and blocked', () => {
+    const state = reducer(initialState(), {
+      type: 'scenario/loaded',
+      scenario: { years: 10, initialPeriodMonths: 120, initialPeriodActive: true },
+    });
+    expect(state.fields.initialPeriodMonths).toBe('120');
+    expect(state.invalid.initialPeriodMonths).toBe(true);
+
+    const blocked = reducer(state, { type: 'calculated' });
+    expect(blocked.result).toBeNull();
+    expect(blocked.calcWarning).toBe(INVALID_FIELDS_WARNING);
+  });
+
+  it('the create-own-amortizations case (60 months over 15 years) still calculates', () => {
+    const state = reducer(initialState(), {
+      type: 'scenario/loaded',
+      scenario: { years: 15, initialPeriodMonths: 60, initialPeriodActive: true },
+    });
+    expect(state.invalid.initialPeriodMonths).toBe(false);
+    const calculated = reducer(state, { type: 'calculated' });
+    expect(calculated.result).not.toBeNull();
+  });
+});
+
 describe('reducer — amortization actions (characterization)', () => {
   it('amortization/added appends a default row and bumps the id counter', () => {
     let state = reducer(initialState(), { type: 'amortization/added' });
