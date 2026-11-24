@@ -21,10 +21,10 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | **0 · Red de seguridad** | `vite.config.js`: `test.include` para que `npm test` no descubra los tests del skill Hallmark | ✅ Hecho |
 | | Tests unitarios de `state.js` (hoy **cero**) fijando el comportamiento actual | ✅ Hecho (`test/state.test.js`, 36 tests) |
 | | Tests de caracterización de `simulation.js` para **tipo variable** y **periodo inicial** (hoy no cubiertos) | ✅ Hecho (5 tests) |
-| **1 · Bugs de validación** | Campo inválido **oculto** bloquea CALCULAR sin indicio visual (`state.js:230`) | ⬜ Pendiente |
-| | `initialPeriodMonths` **sin máximo**: ≥ plazo desactiva en silencio todo el tipo variable (`state.js:60`) | ⬜ Pendiente |
-| | Espacios en blanco validan como 0 % (`parseFloatField`, `state.js:69`) | ⬜ Pendiente |
-| | `1.5` en Capital se interpreta como 15 (`parseIntField`, `state.js:64`) — **decidido: solo enteros** | ⬜ Pendiente |
+| **1 · Bugs de validación** | Campo inválido **oculto** bloquea CALCULAR sin indicio visual (`state.js:230`) | ✅ Hecho (gateado por tipo en `hasInvalidFields`) |
+| | `initialPeriodMonths` **sin máximo**: ≥ plazo desactiva en silencio todo el tipo variable (`state.js:60`) | ✅ Hecho (regla cruzada con el plazo, también en `applyScenario`) |
+| | Espacios en blanco validan como 0 % (`parseFloatField`, `state.js:69`) | ✅ Hecho |
+| | `1.5` en Capital se interpreta como 15 (`parseIntField`, `state.js:64`) — **decidido: solo enteros** | ✅ Hecho (incluye Plazo como regla `int` e importes de escenario marcados) |
 | **2 · Bugs de cálculo** | Cabeceras con **año fraccionario** ("Año 2027.5") (`simulation.js:143`) | ⬜ Pendiente |
 | | Falta la **cabecera del último año parcial** → la tabla parece terminar un año antes | ⬜ Pendiente |
 | | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decidido: cuota original** | ⬜ Pendiente |
