@@ -2,7 +2,7 @@
 import { memo } from 'react';
 import { MONTH_NAMES, loanCalendarMonth } from '../lib/loanCalendar.js';
 
-/** "Junio 2023" for a loan month, given the form's start month/year. */
+/** "Jun 2023" for a loan month, given the form's start month/year. */
 function monthLabel(loanMonth, startMonth, startYear) {
   const { monthIndex, year } = loanCalendarMonth(loanMonth, startMonth, startYear);
   return `${MONTH_NAMES[monthIndex]} ${year}`;
@@ -42,13 +42,44 @@ function ResultsTable({ result, startMonth, startYear }) {
               </tr>
             </thead>
             <tbody id="resultsTableBody">
-              {result.rows.map((row, index) => renderRow(row, index, startMonth, startYear))}
+              {renderRows(result.rows, startMonth, startYear)}
             </tbody>
           </table>
         </div>
       </div>
     </>
   );
+}
+
+function renderRows(rows, startMonth, startYear) {
+  let lastCalendarYear = null;
+  const rendered = [];
+
+  rows.forEach((row, index) => {
+    const loanMonth =
+      row.kind === 'month' ||
+      row.kind === 'amortization' ||
+      row.kind === 'review' ||
+      row.kind === 'period-end'
+        ? row.month
+        : null;
+
+    if (loanMonth != null) {
+      const { year } = loanCalendarMonth(loanMonth, startMonth, startYear);
+      if (year !== lastCalendarYear) {
+        rendered.push(
+          <tr className="table-event table-event--year" key={`calendar-year-${index}`}>
+            <td colSpan={5}>Año {year}</td>
+          </tr>
+        );
+        lastCalendarYear = year;
+      }
+    }
+
+    rendered.push(renderRow(row, index, startMonth, startYear));
+  });
+
+  return rendered;
 }
 
 function renderRow(row, key, startMonth, startYear) {
@@ -71,11 +102,12 @@ function renderRow(row, key, startMonth, startYear) {
           </td>
         </tr>
       );
-    case 'header':
+    case 'review':
       return (
-        <tr className="table-event table-event--year" key={key}>
+        <tr className="table-event table-event--review" key={key}>
           <td colSpan={5}>
-            Año {startYear + row.loanYear}, Euríbor: {row.euribor}, año {row.loanYear} del préstamo
+            Revisión anual de cuota: Euríbor {row.euribor} %, año {row.loanYear} del préstamo
+            ({monthLabel(row.month, startMonth, startYear)})
           </td>
         </tr>
       );

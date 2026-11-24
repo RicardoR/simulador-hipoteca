@@ -596,6 +596,12 @@
   font-weight: 500;
 }
 
+.table-event--review td {
+  border-top: var(--rule-hair) solid var(--color-rule);
+  color: var(--color-accent-2);
+  font-weight: 500;
+}
+
 .table-event--period td {
   color: var(--color-muted);
 }
