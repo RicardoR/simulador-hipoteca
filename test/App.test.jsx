@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import App from '../src/App.jsx';
 
 afterEach(() => {
@@ -320,26 +321,43 @@ describe('the Inicio field drives the year labels (Fase 3.2)', () => {
 });
 
 describe('the calculate control works from the keyboard (Fase 3.2)', () => {
-  it('calculates on Enter and on Space (space acts on keyup, like a native button)', async () => {
+  it('is a real button: Enter and Space activate it natively', async () => {
+    const user = userEvent.setup();
     mockFetchScenario(null);
     render(<App />);
     await waitForScenarioWarning();
 
     const control = document.getElementById('calculateButton');
+    expect(control.tagName).toBe('BUTTON');
     control.focus();
 
-    fireEvent.keyDown(control, { key: 'Enter' });
+    await user.keyboard('{Enter}');
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
 
-    // editing clears the result; Space must recalculate it on keyup
+    // editing clears the result; Space must recalculate it
     fireEvent.change(document.getElementById('capital'), { target: { value: '120000' } });
     expect(document.getElementById('resultsTableBody')).toBeNull();
 
-    fireEvent.keyDown(control, { key: ' ' }); // prevented: no double activation
-    expect(document.getElementById('resultsTableBody')).toBeNull();
-
-    fireEvent.keyUp(control, { key: ' ' });
+    await user.keyboard(' ');
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
+  it('is aria-disabled while fields are invalid, and clicking it still explains why', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const control = document.getElementById('calculateButton');
+    expect(control.getAttribute('aria-disabled')).toBeNull();
+
+    fireEvent.change(document.getElementById('capital'), { target: { value: '' } });
+    expect(control.getAttribute('aria-disabled')).toBe('true');
+
+    // aria-disabled instead of disabled: the click still runs and the
+    // warning tells the user what to fix, instead of a silent no-op
+    fireEvent.click(control);
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
   });
 });
 

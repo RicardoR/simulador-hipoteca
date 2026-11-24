@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react';
-import { formatWarning, initialState, reducer } from './state.js';
+import { formatWarning, hasInvalidFields, initialState, reducer } from './state.js';
 import MortgageForm from './components/MortgageForm.jsx';
 import Amortizations from './components/Amortizations.jsx';
 import EuriborEvolution from './components/EuriborEvolution.jsx';
@@ -63,24 +63,19 @@ export default function App() {
         <div className="amortization-workspace">
           <Amortizations state={state} dispatch={dispatch} />
           <div className="calculate-action-wrapper">
-            <a
+            {/* A real button: Enter/Space activation and focus come for free.
+            aria-disabled (not disabled) keeps it clickable so the warning
+            explains what is wrong; the reducer blocks the calculation anyway
+            (Fase 4.1 of plan/fix-and-polish.md). */}
+            <button
               id="calculateButton"
+              type="button"
               className="calculate-action"
+              aria-disabled={hasInvalidFields(state) || undefined}
               onClick={() => dispatch({ type: 'calculated' })}
-              role="button"
-              tabIndex={0}
-              onKeyDownCapture={(event) => {
-                if (event.key === ' ') event.preventDefault();
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') dispatch({ type: 'calculated' });
-              }}
-              onKeyUp={(event) => {
-                if (event.key === ' ') dispatch({ type: 'calculated' });
-              }}
             >
               Calcular
-            </a>
+            </button>
           </div>
         </div>
         <EuriborEvolution state={state} dispatch={dispatch} />
