@@ -5,15 +5,20 @@
  * can never overwrite each other (bug #2).
  *
  * `src/lib/simulation.js` is imported for its side effect only (it exposes
- * `globalThis.calculateSimulation`) and must not change: it is the stable
- * boundary between the old jQuery code and React, covered by
+ * `globalThis.calculateSimulation`) and is the stable boundary between the old
+ * jQuery code and React. Changes are owner-approved but tests-first:
+ * characterization tests pin the current behavior, then the fix lands
+ * (`plan/fix-and-polish.md`). Covered by `test/state.test.js` and
  * `test/simulation.test.js`.
  */
 import './lib/simulation.js';
 
 const calculateSimulation = globalThis.calculateSimulation;
 
-/** Default euribor series, one value per loan year (50 = max term). */
+/**
+ * Default euribor series, one value per loan year: 51 entries for the
+ * 50-year max term (only indexes 0..49 are read; the extra entry is inert).
+ */
 export const EURIBOR_SERIES = [
   2.2, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
   4.7, 4.6, 4.1, 3.9, 3.5, 3, 2.4, 2.2, 2.6, 3, 3.3, 3.5, 3.6, 3.8,

@@ -5,8 +5,9 @@
  * code and the React frontend (phase 2). Any change here must be covered by
  * tests (see `test/simulation.test.js`).
  *
- * Loaded as a classic script from `index.html` (it also works when opening the
- * file directly, without a server) and exposes `globalThis.calculateSimulation`.
+ * Imported as an ES module (since the React rewrite; `index.html` loads the
+ * bundled app) and exposes `globalThis.calculateSimulation` so the tests and
+ * `src/state.js` can call it.
  *
  * Monthly model:
  *   annual review -> payment = annuity(balance, monthsLeft, rate)
