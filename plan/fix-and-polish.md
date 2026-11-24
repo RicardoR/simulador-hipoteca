@@ -35,10 +35,10 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | | `aria-describedby` en los campos con error | ✅ Hecho (pistas ocultas anunciadas) |
 | | Memoización de la tabla (≤600 filas) y del bloque Euríbor (100 inputs) | ✅ Hecho (toggle Euríbor con 651 filas: 4,2 ms → 0,4 ms; `scripts/measure-toggle.mjs`) |
 | | Unificar la presentación de error (clase + `aria-invalid` + estilo inline, triplicado) | ✅ Hecho (`src/lib/inputErrorProps.js`) |
-| **5 · Limpieza y docs** | CSS muerto (`[aria-disabled]`, `.is-success`, utilidades de `base.css`, bloque duplicado) | ⬜ Pendiente |
-| | `AGENTS.md` (nombres de componentes, "16 tests", `npm test -- test/`), `simulation.js:8`, `state.js:16` | ⬜ Pendiente |
-| | `.idea/` fuera del tracking + `.gitignore`; exports sin usar de `state.js`; `README.md` | ⬜ Pendiente |
-| | Casillas de `plan/redesign-personal-branches.md` y Fase 4 de `plan/redesign.md` (trabajo ya hecho) | ⬜ Pendiente |
+| **5 · Limpieza y docs** | CSS muerto (`[aria-disabled]`, `.is-success`, utilidades de `base.css`, bloque duplicado) | ✅ Hecho (el bloque `aria-disabled` del cálculo se queda: vivo desde la Fase 4.1) |
+| | `AGENTS.md` (nombres de componentes, "16 tests", `npm test -- test/`), `simulation.js:8`, `state.js:16` | ✅ Hecho |
+| | `.idea/` fuera del tracking + `.gitignore`; exports sin usar de `state.js`; `README.md` | ✅ Hecho (exports: se quedan, los consume `test/state.test.js`; `SCENARIO_WARNING` ahora asertado) |
+| | Casillas de `plan/redesign-personal-branches.md` y Fase 4 de `plan/redesign.md` (trabajo ya hecho) | ✅ Hecho |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
