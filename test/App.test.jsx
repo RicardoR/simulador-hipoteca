@@ -216,6 +216,51 @@ describe('amortization year vs term (bug #7)', () => {
   });
 });
 
+describe('amortization editing in the UI (Fase 3.2)', () => {
+  it('removes exactly the row whose button was clicked', async () => {
+    mockFetchScenario({
+      capital: 150000,
+      years: 25,
+      amortizations: [
+        { year: 5, month: 3, amount: 1000, type: 'term' },
+        { year: 7, month: 1, amount: 2000, type: 'payment' },
+      ],
+    });
+    render(<App />);
+    await waitFor(() =>
+      expect(document.querySelectorAll('#amortizationsList .amortization-row')).toHaveLength(2)
+    );
+
+    const rows = document.querySelectorAll('#amortizationsList .amortization-row');
+    expect(rows[0].querySelector('.amount-input').value).toBe('1000');
+    expect(rows[1].querySelector('.amount-input').value).toBe('2000');
+
+    fireEvent.click(rows[0].querySelector('.remove-amortization-action'));
+    const remaining = document.querySelectorAll('#amortizationsList .amortization-row');
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].querySelector('.amount-input').value).toBe('2000');
+  });
+
+  it('blocks the calculation while an amortization amount is invalid', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.click(document.getElementById('addAmortizationButton'));
+    const amount = document.querySelector('#amortizationsList .amount-input');
+    fireEvent.change(amount, { target: { value: 'abc' } });
+    expect(amount.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+
+    fireEvent.change(amount, { target: { value: '500' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+});
+
 describe('the calculate control works from the keyboard (Fase 3.2)', () => {
   it('calculates on Enter and on Space (space acts on keyup, like a native button)', async () => {
     mockFetchScenario(null);
