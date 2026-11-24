@@ -271,7 +271,52 @@ describe('amortization editing in the UI (Fase 3.2)', () => {
       'supera el saldo pendiente'
     );
   });
+});
 
+describe('the schedule is dated with month names (plan/mejoras-tabla.md)', () => {
+  it('dates the schedule with real month names (plan/mejoras-tabla.md)', async () => {
+    mockFetchScenario({
+      startDate: '2023-06-01',
+      capital: 71000,
+      years: 15,
+      type: 'variable',
+      euriborSpread: 1,
+      initialFixedInterest: 2.25,
+      fixedInterest: 2.25,
+      initialPeriodMonths: 60,
+      initialPeriodActive: true,
+      amortizations: [
+        { year: 1, month: 1, amount: 4000, type: 'payment' },
+        { year: 1, month: 2, amount: 6000, type: 'term' },
+        { year: 1, month: 3, amount: 5000, type: 'term' },
+        { year: 1, month: 5, amount: 4000, type: 'term' },
+        { year: 2, month: 4, amount: 500, type: 'term' },
+        { year: 3, month: 8, amount: 5000, type: 'term' },
+      ],
+    });
+    render(<App />);
+
+    // the form select picks the start month up from startDate
+    await waitFor(() => expect(document.getElementById('startMonthField').value).toBe('6'));
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // month rows keep the number (how many payments) and add the full name;
+    // with the amortization at month 1, the order is initial → amort. → cuota 1
+    const amortizationRow = document.querySelector('#resultsTableBody .table-event--amortization');
+    expect(amortizationRow.textContent).toContain('reducción de cuota (Junio 2023)');
+
+    const firstMonth = document.querySelector('#resultsTableBody tr:nth-child(3) td');
+    expect(firstMonth.textContent).toContain('1 · Junio 2023');
+
+    // the closing row shows the exact calendar month, no block approximation
+    const rows = document.querySelectorAll('#resultsTableBody tr');
+    expect(rows[rows.length - 1].textContent).toContain('Fin del préstamo (Mayo 2033 · mes 120)');
+  });
+});
+
+describe('an invalid amortization amount blocks the calculation (Fase 3.2)', () => {
   it('blocks the calculation while an amortization amount is invalid', async () => {
     mockFetchScenario(null);
     render(<App />);

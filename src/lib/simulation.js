@@ -177,6 +177,9 @@
           if (pendingAmount <= 0) break;
           rows.push({
             kind: 'amortization',
+            // Added so the table can date the row (plan/mejoras-tabla.md
+            // Fase 2): 1-based loan month, like the month rows.
+            month: month + 1,
             amount: amortization.amount,
             reduction: amortization.type,
           });

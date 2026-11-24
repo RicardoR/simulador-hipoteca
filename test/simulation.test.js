@@ -367,6 +367,20 @@ describe('characterization — amortization reductions', () => {
     expect(rows[12].payment).toBeLessThan(rows[11].payment);
   });
 
+  it('amortization rows carry their loan month so the table can date them', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 20, 2.25),
+      amortizations: [{ year: 2, month: 1, amount: 10000, type: 'payment' }],
+    });
+    // year 2 month 1 → loan month 13
+    expect(result.rows.find((row) => row.kind === 'amortization')).toEqual({
+      kind: 'amortization',
+      month: 13,
+      amount: 10000,
+      reduction: 'payment',
+    });
+  });
+
   it('initialPayment is the original offer payment, before any amortization (Fase 2.3)', () => {
     const rate = 2.25;
     const original = annuity(100000, 240, rate);
