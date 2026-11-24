@@ -5,8 +5,9 @@
  * code and the React frontend (phase 2). Any change here must be covered by
  * tests (see `test/simulation.test.js`).
  *
- * Loaded as a classic script from `index.html` (it also works when opening the
- * file directly, without a server) and exposes `globalThis.calculateSimulation`.
+ * Imported as an ES module (since the React rewrite; `index.html` loads the
+ * bundled app) and exposes `globalThis.calculateSimulation` so the tests and
+ * `src/state.js` can call it.
  *
  * Monthly model:
  *   annual review -> payment = annuity(balance, monthsLeft, rate)
@@ -121,7 +122,10 @@
     const fixedMonths = hasInitialPeriod ? initialPeriodMonths : 12;
     let remainingMonths = years * 12;
     let interest;
-    let euriborValue = euribor[0];
+    // Fase 2.4: a variable mortgage without a euribor series used to produce
+    // spread + undefined → NaN in the whole table. The lib is pure and
+    // self-contained, so a missing series defaults to a 0% euribor.
+    let euriborValue = typeof euribor[0] == 'number' ? euribor[0] : 0;
     let pendingAmount = capital;
     let totalInterest = 0;
     let initialPayment = null;
@@ -139,8 +143,18 @@
 
     let monthlyPayment = calculateMonthlyPayment(pendingAmount, remainingMonths, interest);
 
+    // Fase 2.3 (owner decision a): 'Tu cuota inicial' is the original offer
+    // payment — the annuity over capital/term/rate before any amortization
+    // applies. It used to be captured at month 0 after the amortizations,
+    // which showed the recalculated payment for 'payment' reductions but the
+    // original one for 'term' reductions. A zero capital has no payment.
+    initialPayment = pendingAmount > 0 ? monthlyPayment : null;
+
     while (remainingMonths > 0 && pendingAmount > 0) {
-      const loanYear = Math.abs(month / 12);
+      // Fase 2.1: floored — with an initial period that is not a multiple of
+      // 12 the header used to render a fractional year ('Año 2027.5').
+      // Math.abs was a no-op here: month is never negative.
+      const loanYear = Math.floor(month / 12);
       if (typeof euribor[month] == 'number') {
         euriborValue = euribor[month];
       }
@@ -207,12 +221,18 @@
         interest: monthInterest,
         remainingMonths: Math.max(0, remainingMonths - 1),
       });
-      if (month == 0) {
-        initialPayment = monthlyPayment;
-      }
       month++;
       remainingMonths--;
     }
+
+    // Fase 2.2 (owner decision a): the schedule ends with an explicit closing
+    // row, so the last (often partial) loan year is visible. The last header
+    // only renders at a review, which the final year never reaches.
+    rows.push({
+      kind: 'end',
+      months: month,
+      loanYear: Math.floor(month / 12),
+    });
 
     return {
       rows: rows,

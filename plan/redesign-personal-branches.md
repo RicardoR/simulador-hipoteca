@@ -88,8 +88,8 @@ También conservar las personalizaciones no relacionadas con el rediseño:
 
 ## Pendiente
 
-- [ ] Publicar este plan en `master`.
-- [ ] Integrar y verificar `pelaez-amortizations`.
-- [ ] Subir y revisar su preview.
-- [ ] Integrar y verificar `create-own-amortizations`.
-- [ ] Subir y revisar su preview.
+- [x] Publicar este plan en `master`. *(merge `44aac14`)*
+- [x] Integrar y verificar `pelaez-amortizations`. *(merge `865f17f`, 0 commits detrás de master)*
+- [x] Subir y revisar su preview.
+- [x] Integrar y verificar `create-own-amortizations`. *(merge `486869e`, 0 commits detrás de master)*
+- [x] Subir y revisar su preview.
