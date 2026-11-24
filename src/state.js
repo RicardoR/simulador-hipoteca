@@ -226,8 +226,22 @@ function buildSimulationInput(state) {
   };
 }
 
+/** Fields rendered only for one mortgage type; the rest are always visible. */
+const ALWAYS_VISIBLE_FIELDS = ['capital', 'years', 'startYear'];
+const TYPE_ONLY_FIELDS = {
+  variable: ['euriborSpread', 'initialFixedInterest', 'initialPeriodMonths'],
+  fixed: ['fixedInterest'],
+};
+
 export function hasInvalidFields(state) {
-  if (Object.values(state.invalid).some(Boolean)) return true;
+  // Only the fields rendered for the current type can block the calculation
+  // (Fase 1.1 of plan/fix-and-polish.md): a hidden field cannot show its red
+  // state, so it must not block silently either. The flags stay untouched, so
+  // a field that reappears after switching the type is red again immediately.
+  // Symmetric with the euribor drafts gate below, and it also covers a
+  // scenario that switches the type with garbage left in the hidden fields.
+  const visibleFields = [...ALWAYS_VISIBLE_FIELDS, ...(TYPE_ONLY_FIELDS[state.fields.type] || [])];
+  if (visibleFields.some((name) => state.invalid[name])) return true;
   if (state.amortizations.some((amortization) => amortization.invalidAmount)) return true;
   if (state.fields.type !== 'variable') return false;
   return Object.entries(state.euriborDrafts).some(

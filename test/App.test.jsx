@@ -216,6 +216,38 @@ describe('amortization year vs term (bug #7)', () => {
   });
 });
 
+describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => {
+  it('garbage in "Interés fijo" stops blocking after switching to Variable', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'fixed' } });
+    fireEvent.change(document.getElementById('fixedInterestField'), { target: { value: 'abc' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'variable' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
+  it('the reverse case: garbage in variable-only fields stops blocking under Fijo', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('variableInterestField'), { target: { value: 'abc' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'fixed' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+});
+
 describe('characterization — the reference numbers through the UI', () => {
   it('100k / 15y / fixed 2.25% → payment 655.08 and a schedule that ends at 0', async () => {
     mockFetchScenario(null);

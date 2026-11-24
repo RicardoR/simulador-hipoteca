@@ -177,6 +177,27 @@ describe('hasInvalidFields (characterization)', () => {
   });
 });
 
+describe('hasInvalidFields — hidden fields do not block (Fase 1.1)', () => {
+  it('ignores the invalid flag of a field hidden by the current type', () => {
+    const state = initialState();
+    state.invalid.fixedInterest = true;
+    expect(state.fields.type).toBe('variable');
+    expect(hasInvalidFields(state)).toBe(false); // "Interés fijo" is not rendered
+
+    state.fields.type = 'fixed';
+    expect(hasInvalidFields(state)).toBe(true); // visible again → blocks
+  });
+
+  it('ignores invalid variable-only fields under a fixed type', () => {
+    const state = initialState();
+    state.fields.type = 'fixed';
+    state.invalid.euriborSpread = true;
+    state.invalid.initialFixedInterest = true;
+    state.invalid.initialPeriodMonths = true;
+    expect(hasInvalidFields(state)).toBe(false);
+  });
+});
+
 describe('formatWarning (characterization)', () => {
   it('formats the out-of-term warning in Spanish', () => {
     expect(
