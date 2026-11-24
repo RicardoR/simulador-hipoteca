@@ -7,9 +7,10 @@ guarda el año de `startDate`) y los meses de la tabla son números sin nombre.
 
 Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 
-> **Frontera estable:** `src/lib/simulation.js` solo recibe un cambio aditivo
-> (las filas de amortización pasan a llevar su índice de mes, necesario para
-> fecharlas), con tests primero. El cálculo no cambia.
+> **Frontera estable:** `src/lib/simulation.js` recibe solo cambios aditivos de
+> presentación (las filas de amortización/revisión llevan su índice de mes),
+> con tests primero. El cálculo no cambia: la revisión del tipo sigue el
+> aniversario del préstamo; el rótulo del año calendario se pinta en enero.
 
 ## Progreso
 
@@ -20,6 +21,7 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 | **3 · Centrado** | `text-align: center` solo en las filas de amortización | ✅ Hecho (sloplint render: 0 FAIL) |
 | **4 · Docs** | `AGENTS.md` (`startMonth`, módulo `loanCalendar`) | ✅ Hecho |
 | **5 · Revisión visual** | Meses a 3 letras (todos ocupan lo mismo) y el input del año sin encogerse en `.field-control` | ✅ Hecho |
+| **6 · Año calendario vs revisión** | Rótulo de año en enero; revisión de cuota en el aniversario, ambos eventos independientes | ✅ Hecho |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
@@ -40,6 +42,10 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
    amortización.
 4. **Cabeceras de año** → sin rango de meses ("jun 2024 – may 2025"): la
    cabecera ya es larga.
+5. **Año calendario y revisión anual** → son eventos diferentes: el rótulo
+   "Año 2027" aparece al empezar enero; la cuota se revisa en el aniversario
+   del préstamo (por ejemplo, septiembre si empezó en septiembre). No cambiar
+   la fecha ni el orden del cálculo bancario.
 
 ## Fase 1 · `startMonth`
 
@@ -48,17 +54,17 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 - `applyScenario`: `startDate` válida → `setField('startMonth', getMonth()+1)`;
   inválida o ausente → se conserva. Sin efecto en `buildSimulationInput`:
   el mes de inicio es presentación, no entra en el cálculo.
-- Formulario: `Inicio: [Junio ▾] [2023]` — select con `MONTH_NAMES`, siempre
+- Formulario: `Inicio: [Jun ▾] [2023]` — select con `MONTH_NAMES`, siempre
   válido (sin estados rojos nuevos), igual que el select de Tipo.
 
 ## Fase 2 · Nombres de mes en la tabla
 
 - `src/lib/loanCalendar.js`: `MONTH_NAMES` +
   `loanCalendarMonth(loanMonth, startMonth, startYear) -> { monthIndex, year }`.
-- `ResultsTable` recibe `startMonth`; columna Mes → `1 · Junio 2023`; fila de
-  cierre → `Fin del préstamo (Mayo 2033 · mes 120)` — año exacto de calendario,
+- `ResultsTable` recibe `startMonth`; columna Mes → `1 · Jun 2023`; fila de
+  cierre → `Fin del préstamo (May 2033 · mes 120)` — año exacto de calendario,
   sin la aproximación por bloques `startYear + loanYear`; filas de amortización
-  → `… (Junio 2023)`.
+  → `… (Jun 2023)`.
 - `simulation.js` (aditivo, tests primero): las filas de amortización llevan
   `month` (1-based).
 
@@ -68,10 +74,26 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 center; }` — con la especificidad completa, porque la regla base de
 `.table-event td` (alineada a la izquierda) ganaría si no. sloplint después.
 
+## Fase 6 · Etiquetas del año calendario y revisiones
+
+- `simulation.js`: renombrar el evento ambiguo `header` a `review` y etiquetarlo
+  con el mes de cuota efectivo (1-based); añadir el mismo índice a
+  `period-end`. Caracterizar primero: la revisión anual sigue en los meses 13,
+  25, … desde el inicio del préstamo, y tras un periodo inicial en
+  `initialPeriodMonths + 1`.
+- `ResultsTable`: insertar "Año YYYY" al comenzar cada año calendario (enero),
+  usando `loanCalendarMonth`; no derivar los rótulos de las revisiones
+  hipotecarias. Renderizar las revisiones como "Revisión anual de cuota:
+  Euríbor …" con el mes de aniversario. Si ambos coinciden en enero, mostrar
+  los dos hechos explícitamente.
+- Regresión UI: préstamo iniciado en septiembre → "Año 2026" antes de la
+  primera cuota, "Año 2027" antes de enero (cuota 5), y revisión antes de la
+  cuota 13 en septiembre de 2027.
+
 ## Lo que NO se toca
 
 - El cálculo (`calculateSimulation`): filas, cuotas, intereses — sin cambios.
-- Las etiquetas de año del Euríbor y las cabeceras de año de la tabla.
+- Las etiquetas de año del Euríbor y el calendario financiero de las revisiones.
 - Los datos de `escenario.json` de las ramas personales (sus `startDate` ya
   traen el mes: mayo y junio de 2023).
 
@@ -81,7 +103,7 @@ center; }` — con la especificidad completa, porque la regla base de
 2. `npm run build` → OK, `dist/` con `escenario.json`.
 3. `sloplint --render` → 0 FAIL (dev server + Chrome; sin Chrome, solo el tier
    estático, y nunca claim de un render que no corrió).
-4. Navegador: el escenario de `create-own-amortizations` muestra "1 · Junio
-   2023" en la primera cuota y "Mayo 2033 · mes 120" en el cierre; las filas
+4. Navegador: el escenario de `create-own-amortizations` muestra "1 · Jun
+   2023" en la primera cuota y "May 2033 · mes 120" en el cierre; las filas
    de amortización centradas.
 5. Push → comprobar previews → PR.
