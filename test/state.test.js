@@ -47,7 +47,6 @@ describe('parseFloatField (characterization)', () => {
   it('accepts a dot or a comma as the decimal separator', () => {
     expect(parseFloatField('2.25')).toBe(2.25);
     expect(parseFloatField('2,25')).toBe(2.25);
-    expect(parseFloatField('-0.5')).toBe(-0.5);
   });
 
   it('is strict about the empty string and about whitespace-only input', () => {
@@ -59,9 +58,12 @@ describe('parseFloatField (characterization)', () => {
     expect(parseFloatField(' 2,25 ')).toBe(2.25);
   });
 
-  it('delegates to Number(), so exponent and sign forms pass through', () => {
-    expect(parseFloatField('1e3')).toBe(1000);
-    expect(parseFloatField('+3')).toBe(3);
+  it('rejects signs, exponents and bare separators (Fase 6.2, decision 5)', () => {
+    // Number() alone accepted these; the strict syntax does not.
+    expect(parseFloatField('1e3')).toBe(NaN);
+    expect(parseFloatField('+3')).toBe(NaN);
+    expect(parseFloatField('-0.5')).toBe(NaN); // flipped on purpose: was -0.5
+    expect(parseFloatField('.5')).toBe(NaN);
     expect(parseFloatField('2.2.3')).toBe(NaN);
     expect(parseFloatField('abc')).toBe(NaN);
   });

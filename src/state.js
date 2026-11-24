@@ -80,10 +80,13 @@ export function parseIntField(value) {
 }
 
 export function parseFloatField(value) {
-  // Fase 1.3 of plan/fix-and-polish.md: trim first — Number('   ') === 0 used
-  // to let a blank field through as 0% interest.
+  // Fase 1.3: trim first — Number('   ') === 0 used to let a blank field
+  // through as 0% interest.
+  // Fase 6.2 (decision 1's decimal twin): a strict digits-with-optional-
+  // separator syntax — Number() alone let '1e3' parse as 1000 and '+3' as 3.
+  // The interest rules are min 0, so no legitimate value is lost.
   const normalized = String(value).trim().replace(',', '.');
-  if (normalized === '') return NaN;
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return NaN;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : NaN;
 }
