@@ -302,17 +302,17 @@ describe('the schedule is dated with month names (plan/mejoras-tabla.md)', () =>
     fireEvent.click(document.getElementById('calculateButton'));
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
 
-    // month rows keep the number (how many payments) and add the full name;
+    // month rows keep the number (how many payments) and add the month;
     // with the amortization at month 1, the order is initial → amort. → cuota 1
     const amortizationRow = document.querySelector('#resultsTableBody .table-event--amortization');
-    expect(amortizationRow.textContent).toContain('reducción de cuota (Junio 2023)');
+    expect(amortizationRow.textContent).toContain('reducción de cuota (Jun 2023)');
 
     const firstMonth = document.querySelector('#resultsTableBody tr:nth-child(3) td');
-    expect(firstMonth.textContent).toContain('1 · Junio 2023');
+    expect(firstMonth.textContent).toContain('1 · Jun 2023');
 
     // the closing row shows the exact calendar month, no block approximation
     const rows = document.querySelectorAll('#resultsTableBody tr');
-    expect(rows[rows.length - 1].textContent).toContain('Fin del préstamo (Mayo 2033 · mes 120)');
+    expect(rows[rows.length - 1].textContent).toContain('Fin del préstamo (May 2033 · mes 120)');
   });
 });
 

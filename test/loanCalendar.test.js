@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { MONTH_NAMES, loanCalendarMonth } from '../src/lib/loanCalendar.js';
 
 describe('MONTH_NAMES', () => {
-  it('has the twelve Spanish months in order', () => {
+  it('has the twelve Spanish months in order, all three letters wide', () => {
     expect(MONTH_NAMES).toHaveLength(12);
-    expect(MONTH_NAMES[0]).toBe('Enero');
-    expect(MONTH_NAMES[11]).toBe('Diciembre');
+    expect(MONTH_NAMES[0]).toBe('Ene');
+    expect(MONTH_NAMES[11]).toBe('Dic');
+    for (const name of MONTH_NAMES) expect(name).toHaveLength(3);
   });
 });
 

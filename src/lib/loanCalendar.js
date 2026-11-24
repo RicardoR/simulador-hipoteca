@@ -5,20 +5,21 @@
  * nothing about calendar dates.
  */
 
-/** Spanish month names, capitalized as table labels. */
+/** Spanish month abbreviations, 3 letters so every label occupies the same
+ * width in the select and in the table (revised decision 3). */
 export const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
+  'Ene',
+  'Feb',
+  'Mar',
+  'Abr',
+  'May',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dic',
 ];
 
 /**
