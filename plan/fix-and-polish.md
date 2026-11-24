@@ -30,11 +30,11 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | | Semántica de `initialPayment` con amortización tipo `payment` en mes 1 — **decidido: cuota original** | ✅ Hecho (captura antes del bucle) |
 | | Robustez de la lib: euríbor vacío en tipo variable → NaN (inalcanzable desde UI) | ✅ Hecho (serie ausente → euríbor 0) |
 | **3 · Tests nuevos** | Casos límite de simulación + tests de UI faltantes (teclado, borrar amortización, `startYear`, `startDate` inválido) | ✅ Hecho (capital 0 y consistencia ya en Fases 0/2; nuevos: plazo 1 año, teclado, eliminar, importe inválido, Inicio, escenario malformado) |
-| **4 · Accesibilidad y perf** | "Calcular": `<a role="button">` → `<button>` real con `aria-disabled` | ⬜ Pendiente |
-| | Nombres accesibles de "Eliminar" (hoy todos dicen lo mismo) | ⬜ Pendiente |
-| | `aria-describedby` en los campos con error | ⬜ Pendiente |
-| | Memoización de la tabla (≤600 filas) y del bloque Euríbor (100 inputs) | ⬜ Pendiente |
-| | Unificar la presentación de error (clase + `aria-invalid` + estilo inline, triplicado) | ⬜ Pendiente |
+| **4 · Accesibilidad y perf** | "Calcular": `<a role="button">` → `<button>` real con `aria-disabled` | ✅ Hecho (activación nativa testeada con `user-event`) |
+| | Nombres accesibles de "Eliminar" (hoy todos dicen lo mismo) | ✅ Hecho |
+| | `aria-describedby` en los campos con error | ✅ Hecho (pistas ocultas anunciadas) |
+| | Memoización de la tabla (≤600 filas) y del bloque Euríbor (100 inputs) | ✅ Hecho (toggle Euríbor con 651 filas: 4,2 ms → 0,4 ms; `scripts/measure-toggle.mjs`) |
+| | Unificar la presentación de error (clase + `aria-invalid` + estilo inline, triplicado) | ✅ Hecho (`src/lib/inputErrorProps.js`) |
 | **5 · Limpieza y docs** | CSS muerto (`[aria-disabled]`, `.is-success`, utilidades de `base.css`, bloque duplicado) | ⬜ Pendiente |
 | | `AGENTS.md` (nombres de componentes, "16 tests", `npm test -- test/`), `simulation.js:8`, `state.js:16` | ⬜ Pendiente |
 | | `.idea/` fuera del tracking + `.gitignore`; exports sin usar de `state.js`; `README.md` | ⬜ Pendiente |
