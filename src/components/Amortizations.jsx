@@ -4,6 +4,8 @@
  * and the year options always follow the current term (bug #7). A year stored
  * outside the term stays visible so the simulation can warn about it.
  */
+import { inputClass, inputErrorProps } from '../lib/inputErrorProps.js';
+
 export default function Amortizations({ state, dispatch }) {
   const termYears = state.termYears;
 
@@ -58,14 +60,9 @@ export default function Amortizations({ state, dispatch }) {
               Capital
               <input
                 size="5"
-                className="amount-input"
+                {...inputErrorProps(amortization.invalidAmount)}
+                className={inputClass('amount-input', amortization.invalidAmount)}
                 value={amortization.amount}
-                aria-invalid={amortization.invalidAmount || undefined}
-                style={
-                  amortization.invalidAmount
-                    ? { backgroundColor: 'var(--color-error-surface)' }
-                    : undefined
-                }
                 onChange={(event) => update(amortization.id, { amount: event.target.value })}
               />
               <span>€</span>

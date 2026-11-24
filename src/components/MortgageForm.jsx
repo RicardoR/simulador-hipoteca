@@ -3,6 +3,8 @@
  * All values live in the reducer (`state.fields`) as strings, exactly like the
  * old DOM inputs did; validation marks the field red and blocks calculation.
  */
+import { inputClass, inputErrorProps } from '../lib/inputErrorProps.js';
+
 export default function MortgageForm({ state, dispatch }) {
   const change = (name) => (event) =>
     dispatch({ type: 'field/changed', name, value: event.target.value });
@@ -10,9 +12,8 @@ export default function MortgageForm({ state, dispatch }) {
   const inputProps = (name, size = '') => ({
     value: state.fields[name],
     onChange: change(name),
-    'aria-invalid': state.invalid[name] || undefined,
-    className: `field-input${size ? ` ${size}` : ''}${state.invalid[name] ? ' is-invalid' : ''}`,
-    style: state.invalid[name] ? { backgroundColor: 'var(--color-error-surface)' } : undefined,
+    ...inputErrorProps(state.invalid[name], `${name}-error`),
+    className: inputClass('field-input', state.invalid[name], size),
   });
 
   return (
