@@ -432,6 +432,24 @@ describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => 
     expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
   });
 
+  it('invalid fields announce their error via aria-describedby (Fase 4.3)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('capital'), { target: { value: '' } });
+    const capital = document.getElementById('capital');
+    expect(capital.getAttribute('aria-describedby')).toBe('capital-error');
+    const hint = document.getElementById('capital-error');
+    expect(hint).not.toBeNull();
+    expect(hint.textContent).toContain('no válido');
+
+    // valid again: the link and the hint are gone
+    fireEvent.change(capital, { target: { value: '150000' } });
+    expect(capital.getAttribute('aria-describedby')).toBeNull();
+    expect(document.getElementById('capital-error')).toBeNull();
+  });
+
   it('blocks the calculation when the initial period reaches the term (Fase 1.2)', async () => {
     mockFetchScenario(null);
     render(<App />);

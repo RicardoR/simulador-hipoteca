@@ -16,6 +16,14 @@ export default function MortgageForm({ state, dispatch }) {
     className: inputClass('field-input', state.invalid[name], size),
   });
 
+  /** Hidden but announced description for invalid fields (Fase 4.3). */
+  const errorHint = (name) =>
+    state.invalid[name] ? (
+      <span className="visually-hidden" id={`${name}-error`}>
+        Valor no válido: revísalo.
+      </span>
+    ) : null;
+
   return (
     <div className="mortgage-form">
       <h2 className="title">Datos de la hipoteca</h2>
@@ -25,6 +33,7 @@ export default function MortgageForm({ state, dispatch }) {
           <input id="capital" size="7" {...inputProps('capital')} />
           <span>€</span>
         </div>
+        {errorHint('capital')}
       </div>
       <div className="form-field">
         <label htmlFor="yearsField">Plazo</label>
@@ -32,10 +41,12 @@ export default function MortgageForm({ state, dispatch }) {
           <input id="yearsField" size="2" {...inputProps('years')} />
           <span>años</span>
         </div>
+        {errorHint('years')}
       </div>
       <div className="form-field">
         <label htmlFor="startYearField">Inicio</label>
         <input id="startYearField" size="4" {...inputProps('startYear')} />
+        {errorHint('startYear')}
       </div>
       <div className="form-field">
         <label htmlFor="typeField">Tipo</label>
@@ -64,6 +75,7 @@ export default function MortgageForm({ state, dispatch }) {
               />
               <span>%</span>
             </div>
+            {errorHint('euriborSpread')}
           </div>
           <fieldset className="initial-period-options">
             <legend className="visually-hidden">Opciones del periodo inicial</legend>
@@ -90,6 +102,7 @@ export default function MortgageForm({ state, dispatch }) {
                 />
                 <span>%</span>
               </div>
+              {errorHint('initialFixedInterest')}
               <label htmlFor="fixedMonthsField">Duración</label>
               <div className="field-control">
                 <input
@@ -98,6 +111,7 @@ export default function MortgageForm({ state, dispatch }) {
                 />
                 <span>meses</span>
               </div>
+              {errorHint('initialPeriodMonths')}
             </div>
           </fieldset>
         </div>
@@ -112,6 +126,7 @@ export default function MortgageForm({ state, dispatch }) {
               />
               <span>%</span>
             </div>
+            {errorHint('fixedInterest')}
           </div>
         </div>
       )}
