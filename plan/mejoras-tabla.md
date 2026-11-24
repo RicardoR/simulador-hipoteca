@@ -19,6 +19,7 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 | **2 · Nombres de mes** | Helper de calendario + columna Mes con nombre + cierre y amortizaciones con fecha | ✅ Hecho |
 | **3 · Centrado** | `text-align: center` solo en las filas de amortización | ✅ Hecho (sloplint render: 0 FAIL) |
 | **4 · Docs** | `AGENTS.md` (`startMonth`, módulo `loanCalendar`) | ✅ Hecho |
+| **5 · Revisión visual** | Meses a 3 letras (todos ocupan lo mismo) y el input del año sin encogerse en `.field-control` | ✅ Hecho |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
@@ -31,9 +32,12 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
    `escenario.json.startDate` (mismo camino que `startYear` en las ramas
    personales). `startDate` inválida o ausente → se conserva el valor; por
    defecto, mes y año actuales.
-3. **Nombres de mes** → nombre completo + número ("1 · Junio 2023"): el número
-   se queda porque dice cuántas cuotas se pagan. También en la fila de cierre
-   ("Mayo 2033 · mes 120") y en las filas de amortización.
+3. **Nombres de mes** → número + abreviatura de 3 letras ("1 · Jun 2023"):
+   el número se queda porque dice cuántas cuotas se pagan; los meses van
+   abreviados para que todos ocupen lo mismo (revisado en la revisión visual
+   de 2026-11-24: se acordó nombre completo y se cambió a 3 letras al verlo).
+   También en la fila de cierre ("May 2033 · mes 120") y en las filas de
+   amortización.
 4. **Cabeceras de año** → sin rango de meses ("jun 2024 – may 2025"): la
    cabecera ya es larga.
 
