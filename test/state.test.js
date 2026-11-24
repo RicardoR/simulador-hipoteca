@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   INVALID_FIELDS_WARNING,
+  SCENARIO_WARNING,
   formatWarning,
   hasInvalidFields,
   initialState,
@@ -489,7 +490,7 @@ describe('reducer — calculated and scenario actions (characterization)', () =>
 
   it('scenario/failed shows the fallback warning and keeps the defaults', () => {
     const state = reducer(initialState(), { type: 'scenario/failed' });
-    expect(state.scenarioWarning).toContain('escenario.json');
+    expect(state.scenarioWarning).toBe(SCENARIO_WARNING);
     expect(state.fields.capital).toBe('150000');
   });
 

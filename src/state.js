@@ -36,6 +36,9 @@ export const SCENARIO_WARNING =
 export const INVALID_FIELDS_WARNING =
   'Aviso: hay campos con valores no válidos; revísalos en rojo antes de calcular.';
 
+/** Default amount for a newly added amortization row. */
+const DEFAULT_AMORTIZATION = { amount: '1000' };
+
 /** HTML defaults — the same the static page had before the scenario loads. */
 const DEFAULT_FIELDS = {
   capital: '150000',
@@ -222,8 +225,6 @@ function applyScenario(state, scenario) {
     calcWarning: null,
   };
 }
-
-const DEFAULT_AMORTIZATION = { amount: '1000' };
 
 /** Sparse euribor array for the simulation: one entry per loan year. */
 function buildEuriborInput(state) {
