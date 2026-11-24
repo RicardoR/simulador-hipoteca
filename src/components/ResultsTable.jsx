@@ -1,5 +1,7 @@
 /** Result summary + amortization table, rendered only after calculation. */
-export default function ResultsTable({ result, startYear }) {
+import { memo } from 'react';
+
+function ResultsTable({ result, startYear }) {
   return (
     <>
       {result.initialPayment != null && (
@@ -101,3 +103,11 @@ function renderRow(row, key, startYear) {
       return null;
   }
 }
+
+/**
+ * Memoized (Fase 4.4 of plan/fix-and-polish.md): the result is kept across
+ * actions that do not touch the data (the euribor panel toggle) and the table
+ * reaches ~650 rows at a 50-year term — rebuilding it on unrelated state
+ * changes is the most expensive render in the app.
+ */
+export default memo(ResultsTable);
