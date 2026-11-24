@@ -311,8 +311,10 @@ describe('characterization — the reference numbers through the UI', () => {
     await waitFor(() => expect(document.getElementById('mortgageContainer')?.textContent).toBe('655.08€'));
 
     const rows = document.querySelectorAll('#resultsTableBody tr');
-    expect(rows).toHaveLength(181); // initial row + 180 monthly rows
+    expect(rows).toHaveLength(182); // initial row + 180 monthly rows + closing row
     expect(rows[180].querySelectorAll('td')[2].textContent).toBe('0.00');
+    // Fase 2.2: the last year is explicit now (startYear 2026 + loan year 0)
+    expect(rows[181].textContent).toContain('Fin del préstamo');
   });
 
   it('blocks the calculation while a field is invalid instead of rendering NaN', async () => {

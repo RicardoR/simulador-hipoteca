@@ -217,6 +217,15 @@
       remainingMonths--;
     }
 
+    // Fase 2.2 (owner decision a): the schedule ends with an explicit closing
+    // row, so the last (often partial) loan year is visible. The last header
+    // only renders at a review, which the final year never reaches.
+    rows.push({
+      kind: 'end',
+      months: month,
+      loanYear: Math.floor(month / 12),
+    });
+
     return {
       rows: rows,
       initialPayment: initialPayment,

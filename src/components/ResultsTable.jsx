@@ -79,6 +79,14 @@ function renderRow(row, key, startYear) {
           </td>
         </tr>
       );
+    case 'end':
+      return (
+        <tr className="table-event" key={key}>
+          <td colSpan={5}>
+            Fin del préstamo (mes {row.months}, año {startYear + row.loanYear})
+          </td>
+        </tr>
+      );
     case 'month':
       return (
         <tr key={key}>

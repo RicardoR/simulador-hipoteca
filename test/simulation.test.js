@@ -291,6 +291,27 @@ describe('characterization — variable type: the initial fixed period', () => {
   });
 });
 
+describe('Fase 2.2 — the schedule ends with an explicit closing row', () => {
+  it('a 10-year loan closes with the end row at month 120, loan year 10', () => {
+    const result = calculateSimulation(fixedInput(100000, 10, 2.25));
+    expect(result.rows[result.rows.length - 1]).toEqual({
+      kind: 'end',
+      months: 120,
+      loanYear: 10,
+    });
+  });
+
+  it('the end row is present and has a whole loan year when the loan closes early', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 20, 2.25),
+      amortizations: [{ year: 1, month: 2, amount: 150000, type: 'payment' }],
+    });
+    const end = result.rows[result.rows.length - 1];
+    expect(end.kind).toBe('end');
+    expect(Number.isInteger(end.loanYear)).toBe(true);
+  });
+});
+
 describe('characterization — amortization reductions', () => {
   it('a "payment" reduction recalculates the annuity over the reduced balance and the months left', () => {
     const rate = 2.25;
