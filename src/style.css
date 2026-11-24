@@ -331,26 +331,12 @@
   transform: translateY(1px);
 }
 
-.text-action:disabled,
-.text-action[aria-disabled="true"],
-.calculate-action:disabled,
+/* The only disabled-like state the JSX emits (Fase 4.1 uses aria-disabled,
+ * never the disabled attribute). */
 .calculate-action[aria-disabled="true"] {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
-}
-
-.text-action[aria-busy="true"],
-.calculate-action[aria-busy="true"] {
-  cursor: progress;
-}
-
-.text-action[aria-invalid="true"] {
-  border-color: var(--color-error);
-}
-
-.text-action.is-success {
-  color: var(--color-success);
 }
 
 .remove-amortization-action {
@@ -489,14 +475,6 @@
 .calculate-action:hover {
   border-color: var(--color-accent-2);
   background: var(--color-accent-2);
-}
-
-.calculate-action[aria-invalid="true"] {
-  border-color: var(--color-error);
-}
-
-.calculate-action.is-success {
-  border-color: var(--color-success);
 }
 
 .mortgage {
@@ -657,6 +635,7 @@
 
   .calculate-action-wrapper {
     grid-row: 4;
+    justify-content: flex-start;
   }
 
   .euribor-title-text {
@@ -676,10 +655,6 @@
     max-height: 25rem;
     overflow-x: hidden;
     overflow-y: auto;
-  }
-
-  .calculate-action-wrapper {
-    justify-content: flex-start;
   }
 }
 

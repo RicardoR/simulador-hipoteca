@@ -6,5 +6,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // Only the simulator's own tests: without this, `npm test` also discovers
+    // the Hallmark skill's internal tests under .agents/ and fails on them.
+    include: ['test/**/*.{js,jsx}'],
   },
 });
