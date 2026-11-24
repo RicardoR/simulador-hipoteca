@@ -128,9 +128,6 @@
   font-size: var(--text-sm);
 }
 
-/* Fixed-size inputs must not shrink inside the flex row: the start-year
- * input used to be squeezed by the month select and cut the year off
- * ("202" instead of "2026"). */
 .field-control > input {
   flex: 0 0 auto;
 }
@@ -338,8 +335,6 @@
   transform: translateY(1px);
 }
 
-/* The only disabled-like state the JSX emits (Fase 4.1 uses aria-disabled,
- * never the disabled attribute). */
 .calculate-action[aria-disabled="true"] {
   opacity: 0.55;
   cursor: not-allowed;
@@ -618,9 +613,6 @@
 
 .results-table-section tbody .table-event--amortization td {
   color: var(--color-accent-2);
-  /* full specificity prefix: the base .table-event rule (left-aligned)
-   * would win otherwise (plan/mejoras-tabla.md Fase 3) */
-  text-align: center;
 }
 
 .table-event--amortization .num {
