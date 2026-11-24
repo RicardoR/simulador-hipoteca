@@ -16,22 +16,24 @@ import {
 // the quirks that plan/fix-and-polish.md Fases 1.x will deliberately change.
 // Each quirk is marked so flipping it means editing that assertion on purpose.
 
-describe('parseIntField (characterization)', () => {
+describe('parseIntField — strict digits (Fase 1.4 decision)', () => {
   it('parses clean digit strings', () => {
     expect(parseIntField('1500')).toBe(1500);
     expect(parseIntField('0')).toBe(0);
+    expect(parseIntField(' 1500 ')).toBe(1500); // edge whitespace is harmless
   });
 
-  it('strips dots, commas and spaces as thousands separators', () => {
-    // Known quirk, pinned on purpose: separators are removed, so '1.5'
-    // parses as 15. Fase 1.4 of plan/fix-and-polish.md makes this invalid.
-    expect(parseIntField('1.5')).toBe(15);
-    expect(parseIntField('1,5')).toBe(15);
-    expect(parseIntField('1 500')).toBe(1500);
-    expect(parseIntField('150.000')).toBe(150000);
+  it('rejects decimals, separators and inner spaces instead of misparsing them', () => {
+    // Fixed by owner decision 1: separators used to be stripped, so '1.5'
+    // parsed as 15 and '150.000' as 150000. Thousands separators are no
+    // longer accepted on purpose — the ambiguity is the expensive bug.
+    expect(parseIntField('1.5')).toBe(NaN);
+    expect(parseIntField('1,5')).toBe(NaN);
+    expect(parseIntField('1 500')).toBe(NaN);
+    expect(parseIntField('150.000')).toBe(NaN);
   });
 
-  it('rejects anything that is not digits after stripping', () => {
+  it('rejects anything that is not digits', () => {
     expect(parseIntField('')).toBe(NaN);
     expect(parseIntField('   ')).toBe(NaN);
     expect(parseIntField('abc')).toBe(NaN);
@@ -65,12 +67,19 @@ describe('parseFloatField (characterization)', () => {
 });
 
 describe('isValidField (characterization)', () => {
-  it('validates int rules (capital, startYear, initialPeriodMonths)', () => {
+  it('validates int rules (capital, years, startYear, initialPeriodMonths)', () => {
     expect(isValidField('capital', '150000')).toBe(true);
     expect(isValidField('capital', '-5')).toBe(false);
     expect(isValidField('capital', '')).toBe(false);
-    // '1.5' parses as 15 today (see parseIntField): valid until Fase 1.4.
-    expect(isValidField('capital', '1.5')).toBe(true);
+    // Fixed by owner decision 1 (Fase 1.4): '1.5' parsed as 15 before.
+    expect(isValidField('capital', '1.5')).toBe(false);
+    expect(isValidField('years', '25')).toBe(true);
+    // Fixed by owner decision 1 (Fase 1.4): '12.5' was valid and truncated.
+    expect(isValidField('years', '12.5')).toBe(false);
+    expect(isValidField('years', '12,5')).toBe(false);
+    expect(isValidField('years', '0')).toBe(false);
+    expect(isValidField('years', '50')).toBe(true);
+    expect(isValidField('years', '51')).toBe(false);
     expect(isValidField('startYear', '1900')).toBe(true);
     expect(isValidField('startYear', '1899')).toBe(false);
     expect(isValidField('startYear', '2200')).toBe(true);
@@ -79,15 +88,7 @@ describe('isValidField (characterization)', () => {
     expect(isValidField('initialPeriodMonths', '-1')).toBe(false);
   });
 
-  it('validates number rules (years, interests) with min and max', () => {
-    expect(isValidField('years', '25')).toBe(true);
-    // years is a 'number' rule: '12.5' is valid today and the calculation
-    // truncates it to 12 (see the termYears cache test below).
-    expect(isValidField('years', '12.5')).toBe(true);
-    expect(isValidField('years', '12,5')).toBe(true);
-    expect(isValidField('years', '0')).toBe(false);
-    expect(isValidField('years', '50')).toBe(true);
-    expect(isValidField('years', '51')).toBe(false);
+  it('validates number rules (interests) with min', () => {
     expect(isValidField('fixedInterest', '0')).toBe(true);
     expect(isValidField('fixedInterest', '-1')).toBe(false);
     expect(isValidField('euriborSpread', 'abc')).toBe(false);
@@ -136,8 +137,8 @@ describe('isValidAmortizationAmount (characterization)', () => {
     expect(isValidAmortizationAmount('-5')).toBe(false);
     expect(isValidAmortizationAmount('')).toBe(false);
     expect(isValidAmortizationAmount('abc')).toBe(false);
-    // '1.5' parses as 15 today (see parseIntField): valid until Fase 1.4.
-    expect(isValidAmortizationAmount('1.5')).toBe(true);
+    // Fixed by owner decision 1 (Fase 1.4): '1.5' parsed as 15 before.
+    expect(isValidAmortizationAmount('1.5')).toBe(false);
   });
 });
 
@@ -243,8 +244,11 @@ describe('reducer — field/changed (characterization)', () => {
   });
 
   it('keeps termYears and startYear as last-valid caches', () => {
-    let state = reducer(initialState(), { type: 'field/changed', name: 'years', value: '12.9' });
-    expect(state.termYears).toBe(12); // trunc of the valid float
+    let state = reducer(initialState(), { type: 'field/changed', name: 'years', value: '12' });
+    expect(state.termYears).toBe(12);
+
+    state = reducer(state, { type: 'field/changed', name: 'years', value: '12.9' });
+    expect(state.termYears).toBe(12); // decimals are invalid (decision 1): cache kept
 
     state = reducer(state, { type: 'field/changed', name: 'years', value: 'abc' });
     expect(state.termYears).toBe(12); // invalid input keeps the cache
@@ -466,6 +470,21 @@ describe('reducer — calculated and scenario actions (characterization)', () =>
     expect(next.fields.capital).toBe('150000');
     expect(next.fields.years).toBe('25');
     expect(next.startYear).toBe(state.startYear);
+  });
+
+  it('scenario/loaded flags a non-integer amortization amount instead of misparsing it', () => {
+    // Decision 1 (Fase 1.4): '4000.5' used to parse as 40005 via separator
+    // stripping; now it is marked invalid and blocks the calculation.
+    const state = reducer(initialState(), {
+      type: 'scenario/loaded',
+      scenario: { amortizations: [{ year: 3, month: 2, amount: 4000.5, type: 'term' }] },
+    });
+    expect(state.amortizations[0].amount).toBe('4000.5');
+    expect(state.amortizations[0].invalidAmount).toBe(true);
+
+    const blocked = reducer(state, { type: 'calculated' });
+    expect(blocked.result).toBeNull();
+    expect(blocked.calcWarning).toBe(INVALID_FIELDS_WARNING);
   });
 
   it('scenario/failed shows the fallback warning and keeps the defaults', () => {

@@ -52,7 +52,9 @@ const DEFAULT_FIELDS = {
  */
 const FIELD_RULES = {
   capital: { kind: 'int', min: 0 },
-  years: { kind: 'number', min: 1, max: 50 },
+  // Owner decision 1 (Fase 1.4): the term is integer-only too, like every
+  // other amount field — '12.5' years would truncate to 12 while shown.
+  years: { kind: 'int', min: 1, max: 50 },
   startYear: { kind: 'int', min: 1900, max: 2200 },
   fixedInterest: { kind: 'number', min: 0 },
   euriborSpread: { kind: 'number', min: 0 },
@@ -61,9 +63,12 @@ const FIELD_RULES = {
 };
 
 export function parseIntField(value) {
-  const stripped = String(value).replace(/[.,\s]/g, '');
-  if (!/^\d+$/.test(stripped)) return NaN;
-  return parseInt(stripped, 10);
+  // Strict digits (owner decision 1, Fase 1.4 of plan/fix-and-polish.md):
+  // no separator stripping — '1.5' must never become 15 in a capital field.
+  // Edge whitespace is trimmed; dots, commas or inner spaces are invalid.
+  const trimmed = String(value).trim();
+  if (!/^\d+$/.test(trimmed)) return NaN;
+  return parseInt(trimmed, 10);
 }
 
 export function parseFloatField(value) {
@@ -180,6 +185,8 @@ function applyScenario(state, scenario) {
     scenario.amortizations.forEach((amortization) => {
       if (!amortization || typeof amortization !== 'object') return;
       const year = Number(amortization.year);
+      const amount =
+        typeof amortization.amount === 'number' ? String(amortization.amount) : DEFAULT_AMORTIZATION.amount;
       amortizations.push({
         id: nextId++,
         // The year is stored as given when it is a plausible year: if it falls
@@ -188,10 +195,11 @@ function applyScenario(state, scenario) {
         // silently clamping (bug #7).
         year: Number.isFinite(year) && year >= 1 ? Math.trunc(year) : 1,
         month: Math.min(Math.max(Number(amortization.month) || 1, 1), 12),
-        amount:
-          typeof amortization.amount === 'number' ? String(amortization.amount) : DEFAULT_AMORTIZATION.amount,
+        amount,
         type: amortization.type === 'payment' ? 'payment' : 'term',
-        invalidAmount: false,
+        // Decision 1 (Fase 1.4): a non-integer scenario amount is marked
+        // instead of reaching the calculation unparsed.
+        invalidAmount: !isValidAmortizationAmount(amount),
       });
     });
   }

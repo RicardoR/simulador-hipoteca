@@ -247,6 +247,25 @@ describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => 
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
   });
 
+  it('capital rejects decimals and separators, whole digits pass (Fase 1.4)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const capital = document.getElementById('capital');
+    for (const bad of ['1.5', '1,5', '1 500']) {
+      fireEvent.change(capital, { target: { value: bad } });
+      expect(capital.getAttribute('aria-invalid')).toBe('true');
+      fireEvent.click(document.getElementById('calculateButton'));
+      expect(document.getElementById('resultsTableBody')).toBeNull();
+    }
+
+    fireEvent.change(capital, { target: { value: '1500' } });
+    expect(capital.getAttribute('aria-invalid')).toBeNull();
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
   it('a whitespace-only interest field is invalid instead of 0% (Fase 1.3)', async () => {
     mockFetchScenario(null);
     render(<App />);
