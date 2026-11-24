@@ -261,6 +261,37 @@ describe('amortization editing in the UI (Fase 3.2)', () => {
   });
 });
 
+describe('a malformed scenario does not break the app (Fase 3.2)', () => {
+  it('ignores an invalid startDate and wrong-typed fields, and still calculates', async () => {
+    mockFetchScenario({
+      startDate: 'not-a-date',
+      capital: '99999', // string: ignored
+      years: '10', // string: ignored
+      type: 'variable',
+      amortizations: [{ year: 1, month: 1, amount: 4000, type: 'payment' }],
+    });
+    render(<App />);
+
+    // the scenario loads (no fallback warning) and the amortization row appears
+    await waitFor(() =>
+      expect(document.querySelectorAll('#amortizationsList .amortization-row')).toHaveLength(1)
+    );
+    expect(document.getElementById('warningsContainer')).toBeNull();
+
+    // the wrong-typed fields are ignored: the HTML defaults stay, and the
+    // invalid startDate falls back to the current year
+    expect(document.getElementById('capital').value).toBe('150000');
+    expect(document.getElementById('yearsField').value).toBe('25');
+    expect(document.querySelector('#euribor .year').textContent).toBe(
+      String(new Date().getFullYear())
+    );
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+    expect(document.getElementById('resultsTableBody').textContent).toContain('Amort. parcial');
+  });
+});
+
 describe('the Inicio field drives the year labels (Fase 3.2)', () => {
   it('the table headers and euribor labels follow startYear', async () => {
     mockFetchScenario(null);
