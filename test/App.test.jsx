@@ -250,6 +250,28 @@ describe('amortization editing in the UI (Fase 3.2)', () => {
     expect(remaining[0].querySelector('.amount-input').value).toBe('2000');
   });
 
+  it('an amortization exceeding the balance closes the loan and warns in the UI (Fase 6.4)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.click(document.getElementById('addAmortizationButton'));
+    const amount = document.querySelector('#amortizationsList .amount-input');
+    fireEvent.change(amount, { target: { value: '999999' } });
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // the loan closes at the amortization month and the lib warning reaches
+    // the warnings container through formatWarning
+    expect(document.getElementById('resultsTableBody').textContent).toContain(
+      'Fin del préstamo'
+    );
+    expect(document.getElementById('warningsContainer').textContent).toContain(
+      'supera el saldo pendiente'
+    );
+  });
+
   it('blocks the calculation while an amortization amount is invalid', async () => {
     mockFetchScenario(null);
     render(<App />);
