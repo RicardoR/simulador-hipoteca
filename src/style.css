@@ -593,8 +593,11 @@
   color: var(--color-muted);
 }
 
-.table-event--amortization td {
+.results-table-section tbody .table-event--amortization td {
   color: var(--color-accent-2);
+  /* full specificity prefix: the base .table-event rule (left-aligned)
+   * would win otherwise (plan/mejoras-tabla.md Fase 3) */
+  text-align: center;
 }
 
 .table-event--amortization .num {
