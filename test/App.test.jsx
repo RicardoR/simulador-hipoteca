@@ -216,6 +216,30 @@ describe('amortization year vs term (bug #7)', () => {
   });
 });
 
+describe('the calculate control works from the keyboard (Fase 3.2)', () => {
+  it('calculates on Enter and on Space (space acts on keyup, like a native button)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const control = document.getElementById('calculateButton');
+    control.focus();
+
+    fireEvent.keyDown(control, { key: 'Enter' });
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // editing clears the result; Space must recalculate it on keyup
+    fireEvent.change(document.getElementById('capital'), { target: { value: '120000' } });
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+
+    fireEvent.keyDown(control, { key: ' ' }); // prevented: no double activation
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+
+    fireEvent.keyUp(control, { key: ' ' });
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+});
+
 describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => {
   it('garbage in "Interés fijo" stops blocking after switching to Variable', async () => {
     mockFetchScenario(null);
