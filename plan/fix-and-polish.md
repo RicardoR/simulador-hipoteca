@@ -18,9 +18,9 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 
 | Fase | Tarea | Estado |
 |---|---|---|
-| **0 · Red de seguridad** | `vite.config.js`: `test.include` para que `npm test` no descubra los tests del skill Hallmark | ⬜ Pendiente |
-| | Tests unitarios de `state.js` (hoy **cero**) fijando el comportamiento actual | ⬜ Pendiente |
-| | Tests de caracterización de `simulation.js` para **tipo variable** y **periodo inicial** (hoy no cubiertos) | ⬜ Pendiente |
+| **0 · Red de seguridad** | `vite.config.js`: `test.include` para que `npm test` no descubra los tests del skill Hallmark | ✅ Hecho |
+| | Tests unitarios de `state.js` (hoy **cero**) fijando el comportamiento actual | ✅ Hecho (`test/state.test.js`, 36 tests) |
+| | Tests de caracterización de `simulation.js` para **tipo variable** y **periodo inicial** (hoy no cubiertos) | ✅ Hecho (5 tests) |
 | **1 · Bugs de validación** | Campo inválido **oculto** bloquea CALCULAR sin indicio visual (`state.js:230`) | ⬜ Pendiente |
 | | `initialPeriodMonths` **sin máximo**: ≥ plazo desactiva en silencio todo el tipo variable (`state.js:60`) | ⬜ Pendiente |
 | | Espacios en blanco validan como 0 % (`parseFloatField`, `state.js:69`) | ⬜ Pendiente |
