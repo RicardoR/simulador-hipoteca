@@ -201,3 +201,134 @@ describe('bug #7 — amortization outside the term', () => {
     ]);
   });
 });
+
+// Sparse euribor array like the app builds it: one value per loan year,
+// stored at the month index yearIndex * 12.
+function sparseEuribor(valuesPerYear) {
+  const euribor = [];
+  valuesPerYear.forEach((value, yearIndex) => {
+    euribor[yearIndex * 12] = value;
+  });
+  return euribor;
+}
+
+describe('characterization — variable type: the annual review', () => {
+  it('reviews every 12 months: header row, spread + euribor, re-annuitization over the months left', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 5, 0),
+      type: 'variable',
+      euriborSpread: 1.5,
+      euribor: sparseEuribor([2, 3, 4, 2.5, 3.5]),
+    });
+
+    // reviews at months 12/24/36/48; month 0 runs on euribor[0] with no header
+    const headers = result.rows.filter((row) => row.kind === 'header');
+    expect(headers.map((row) => row.loanYear)).toEqual([1, 2, 3, 4]);
+    expect(headers.map((row) => row.euribor)).toEqual([3, 4, 2.5, 3.5]);
+    expect(result.rows[1].kind).toBe('month');
+
+    // year 1 runs at 1.5 + 2 = 3.5%
+    const rows = monthRows(result);
+    expect(rows[0].payment).toBeCloseTo(annuity(100000, 60, 3.5), 6);
+
+    // after the review the annuity is rebuilt with the current balance and
+    // the months left (60 - 12 = 48)
+    const balanceAfterYear1 = rows[11].balance;
+    expect(rows[12].payment).toBeCloseTo(annuity(balanceAfterYear1, 48, 4.5), 6);
+    expect(rows[12].interest).toBeCloseTo(balanceAfterYear1 * periodRate(4.5), 6);
+  });
+});
+
+describe('characterization — variable type: the initial fixed period', () => {
+  it('keeps the initial fixed interest until fixedMonths, then ends the period', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 10, 0),
+      type: 'variable',
+      euriborSpread: 0.5,
+      initialPeriodActive: true,
+      initialFixedInterest: 1.25,
+      initialPeriodMonths: 18,
+      euribor: sparseEuribor([2, 3, 4, 2.5, 3.5, 3, 2.8, 3.2, 3.6, 3.1]),
+    });
+    const rows = monthRows(result);
+
+    // months 1-18 run at the initial fixed rate
+    expect(rows[0].interest).toBeCloseTo(100000 * periodRate(1.25), 6);
+    expect(rows[17].interest).toBeCloseTo(rows[16].balance * periodRate(1.25), 6);
+
+    // the period ends at month 18: period-end row right before the review header
+    const headerIndex = result.rows.findIndex((row) => row.kind === 'header');
+    expect(result.rows[headerIndex - 1].kind).toBe('period-end');
+    expect(result.rows.filter((row) => row.kind === 'period-end')).toHaveLength(1);
+
+    // known quirk, pinned on purpose: an initial period that is not a multiple
+    // of 12 yields a fractional loanYear ('Año … año 1.5 del préstamo').
+    // Fase 2.1 of plan/fix-and-polish.md will floor it.
+    expect(result.rows[headerIndex].loanYear).toBe(1.5);
+    // the review reuses the last euribor read (index 12) until the next
+    // multiple of 12
+    expect(result.rows[headerIndex].euribor).toBe(3);
+
+    // month 19 already runs at the variable rate: 0.5 + euribor[12] = 3.5%
+    expect(rows[18].interest).toBeCloseTo(rows[17].balance * periodRate(3.5), 6);
+  });
+});
+
+describe('characterization — amortization reductions', () => {
+  it('a "payment" reduction recalculates the annuity over the reduced balance and the months left', () => {
+    const rate = 2.25;
+    const result = calculateSimulation({
+      ...fixedInput(100000, 20, rate),
+      amortizations: [{ year: 2, month: 1, amount: 10000, type: 'payment' }],
+    });
+    const rows = monthRows(result);
+
+    // year 2 month 1 → month index 12: from month 13 on the payment is a new
+    // annuity over the reduced balance and the remaining 240 - 12 = 228 months
+    const balanceBefore = rows[11].balance;
+    expect(rows[12].payment).toBeCloseTo(annuity(balanceBefore - 10000, 228, rate), 6);
+    expect(rows[12].payment).toBeLessThan(rows[11].payment);
+  });
+
+  it('initialPayment is captured after the month-0 amortization (current behavior)', () => {
+    const rate = 2.25;
+    const original = annuity(100000, 240, rate);
+    const result = calculateSimulation({
+      ...fixedInput(100000, 20, rate),
+      amortizations: [{ year: 1, month: 1, amount: 1000, type: 'payment' }],
+    });
+    const rows = monthRows(result);
+
+    // pinned on purpose: today 'Tu cuota inicial' shows the recalculated
+    // payment when month 1 carries a 'payment' amortization. Fase 2.3 of
+    // plan/fix-and-polish.md will flip this to the original payment.
+    expect(result.initialPayment).toBeCloseTo(rows[0].payment, 6);
+    expect(result.initialPayment).not.toBeCloseTo(original, 3);
+
+    // with a 'term' reduction the payment never changes, so both coincide —
+    // the inconsistency between the two reduction types is what Fase 2.3 fixes
+    const termResult = calculateSimulation({
+      ...fixedInput(100000, 20, rate),
+      amortizations: [{ year: 1, month: 1, amount: 1000, type: 'term' }],
+    });
+    expect(termResult.initialPayment).toBeCloseTo(original, 6);
+  });
+
+  it('totalInterest equals the sum of the monthly interest rows', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 10, 0),
+      type: 'variable',
+      euriborSpread: 0.9,
+      initialPeriodActive: true,
+      initialFixedInterest: 1.1,
+      initialPeriodMonths: 6,
+      euribor: sparseEuribor([1.8, 2.4, 3, 2.6, 2.2, 2.9, 3.3, 2.7, 3.1, 2.5]),
+      amortizations: [
+        { year: 3, month: 4, amount: 5000, type: 'payment' },
+        { year: 7, month: 2, amount: 3000, type: 'term' },
+      ],
+    });
+    const sum = monthRows(result).reduce((acc, row) => acc + row.interest, 0);
+    expect(result.totalInterest).toBeCloseTo(sum, 8);
+  });
+});
