@@ -235,12 +235,13 @@ describe('amortization editing in the UI (Fase 3.2)', () => {
     const rows = document.querySelectorAll('#amortizationsList .amortization-row');
     expect(rows[0].querySelector('.amount-input').value).toBe('1000');
     expect(rows[1].querySelector('.amount-input').value).toBe('2000');
-    // each button names the row it deletes (Fase 4.2)
+    // each button names the row it deletes; the amount disambiguates twin
+    // rows in the same year and month (Fase 4.2 + 6.3)
     expect(rows[0].querySelector('.remove-amortization-action').getAttribute('aria-label')).toBe(
-      'Eliminar amortización año 5 mes 3'
+      'Eliminar la amortización de 1000 € del año 5, mes 3'
     );
     expect(rows[1].querySelector('.remove-amortization-action').getAttribute('aria-label')).toBe(
-      'Eliminar amortización año 7 mes 1'
+      'Eliminar la amortización de 2000 € del año 7, mes 1'
     );
 
     fireEvent.click(rows[0].querySelector('.remove-amortization-action'));

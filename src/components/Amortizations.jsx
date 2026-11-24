@@ -83,7 +83,7 @@ export default function Amortizations({ state, dispatch }) {
             <button
               type="button"
               className="text-action remove-amortization-action"
-              aria-label={`Eliminar amortización año ${amortization.year} mes ${amortization.month}`}
+              aria-label={`Eliminar la amortización de ${amortization.amount} € del año ${amortization.year}, mes ${amortization.month}`}
               onClick={() => dispatch({ type: 'amortization/removed', id: amortization.id })}
             >
               Eliminar
