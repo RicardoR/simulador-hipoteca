@@ -18,7 +18,7 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 |---|---|---|
 | **1 · Mes de inicio** | `startMonth` en estado + select de mes en "Inicio" + siembra desde `startDate` | ✅ Hecho |
 | **2 · Nombres de mes** | Helper de calendario + columna Mes con nombre + cierre y amortizaciones con fecha | ✅ Hecho |
-| **3 · Centrado** | `text-align: center` solo en las filas de amortización | ✅ Hecho (sloplint render: 0 FAIL) |
+| **3 · Centrado** | `text-align: center` en filas de amortización, rótulos de año y revisión | ✅ Hecho (sloplint render: 0 FAIL) |
 | **4 · Docs** | `AGENTS.md` (`startMonth`, módulo `loanCalendar`) | ✅ Hecho |
 | **5 · Revisión visual** | Meses a 3 letras (todos ocupan lo mismo) y el input del año sin encogerse en `.field-control` | ✅ Hecho |
 | **6 · Año calendario vs revisión** | Rótulo de año en enero; revisión de cuota en el aniversario, ambos eventos independientes | ✅ Hecho |
@@ -27,8 +27,9 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 
 ## Decisiones — resueltas (2026-11-24)
 
-1. **Centrado** → solo las filas de amortización (`--amortization`), no todas
-   las filas de evento.
+1. **Centrado** → filas de amortización, rótulos de año calendario y revisión;
+   otros eventos (fin del periodo inicial, cierre del préstamo) quedan a la
+   izquierda. Se amplió tras revisión visual.
 2. **Mes de inicio** → campo de formulario editable como el año: select de mes
    junto al input de año en "Inicio"; se guarda en el estado y se siembra desde
    `escenario.json.startDate` (mismo camino que `startYear` en las ramas
@@ -70,8 +71,10 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 
 ## Fase 3 · Centrado
 
-`.results-table-section tbody .table-event--amortization td { text-align:
-center; }` — con la especificidad completa, porque la regla base de
+`.results-table-section tbody .table-event--amortization td`,
+`.results-table-section tbody .table-event--year td` y
+`.results-table-section tbody .table-event--review td` llevan `text-align:
+center` — con la especificidad completa, porque la regla base de
 `.table-event td` (alineada a la izquierda) ganaría si no. sloplint después.
 
 ## Fase 6 · Etiquetas del año calendario y revisiones

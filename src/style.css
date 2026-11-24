@@ -596,7 +596,12 @@
   font-weight: 500;
 }
 
-.table-event--review td {
+.results-table-section tbody .table-event--year td,
+.results-table-section tbody .table-event--review td {
+  text-align: center;
+}
+
+.results-table-section tbody .table-event--review td {
   border-top: var(--rule-hair) solid var(--color-rule);
   color: var(--color-accent-2);
   font-weight: 500;
