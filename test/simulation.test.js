@@ -289,6 +289,45 @@ describe('characterization — variable type: the initial fixed period', () => {
     expect(loanYears.length).toBeGreaterThan(0);
     for (const loanYear of loanYears) expect(Number.isInteger(loanYear)).toBe(true);
   });
+
+  it('a 1-year term never reaches its month-12 review without an initial period', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 1, 0),
+      type: 'variable',
+      euriborSpread: 1.5,
+      euribor: sparseEuribor([2, 3]),
+    });
+
+    // the single review point coincides with the end: the whole year runs on
+    // euribor[0] + spread, no header row at all
+    expect(result.rows.filter((row) => row.kind === 'header')).toHaveLength(0);
+    const rows = monthRows(result);
+    expect(rows).toHaveLength(12);
+    expect(rows[0].payment).toBeCloseTo(annuity(100000, 12, 3.5), 6);
+    expect(rows[11].interest).toBeCloseTo(rows[10].balance * periodRate(3.5), 6);
+  });
+
+  it('a 1-year term with a 6-month initial period gets exactly one review', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 1, 0),
+      type: 'variable',
+      euriborSpread: 0.5,
+      initialPeriodActive: true,
+      initialFixedInterest: 1.25,
+      initialPeriodMonths: 6,
+      euribor: sparseEuribor([2, 3]),
+    });
+
+    const headers = result.rows.filter((row) => row.kind === 'header');
+    expect(headers).toHaveLength(1);
+    expect(result.rows.filter((row) => row.kind === 'period-end')).toHaveLength(1);
+    // months 1-6 at the initial fixed rate, month 7 onwards at the review rate
+    expect(monthRows(result)[0].interest).toBeCloseTo(100000 * periodRate(1.25), 6);
+    expect(monthRows(result)[6].payment).toBeCloseTo(
+      annuity(monthRows(result)[5].balance, 6, 0.5 + 2),
+      6
+    );
+  });
 });
 
 describe('Fase 2.2 — the schedule ends with an explicit closing row', () => {
