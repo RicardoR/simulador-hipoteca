@@ -71,11 +71,12 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 
 ## Fase 3 · Centrado
 
-`.results-table-section tbody .table-event--amortization td`,
-`.results-table-section tbody .table-event--year td` y
-`.results-table-section tbody .table-event--review td` llevan `text-align:
-center` — con la especificidad completa, porque la regla base de
-`.table-event td` (alineada a la izquierda) ganaría si no. sloplint después.
+`.results-table-section tbody tr.table-event--amortization > td:first-child`,
+`.results-table-section tbody tr.table-event--year > td:first-child` y
+`.results-table-section tbody tr.table-event--review > td:first-child` llevan
+`text-align: center`. La regla `.results-table-section tbody tr >
+td:first-child` era más específica y los sobrescribía; se confirmó el estilo
+computado en Chrome antes de elevar la especificidad.
 
 ## Fase 6 · Etiquetas del año calendario y revisiones
 

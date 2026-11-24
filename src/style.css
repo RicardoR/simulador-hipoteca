@@ -596,8 +596,9 @@
   font-weight: 500;
 }
 
-.results-table-section tbody .table-event--year td,
-.results-table-section tbody .table-event--review td {
+.results-table-section tbody tr.table-event--year > td:first-child,
+.results-table-section tbody tr.table-event--review > td:first-child,
+.results-table-section tbody tr.table-event--amortization > td:first-child {
   text-align: center;
 }
 
