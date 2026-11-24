@@ -139,6 +139,13 @@
 
     let monthlyPayment = calculateMonthlyPayment(pendingAmount, remainingMonths, interest);
 
+    // Fase 2.3 (owner decision a): 'Tu cuota inicial' is the original offer
+    // payment — the annuity over capital/term/rate before any amortization
+    // applies. It used to be captured at month 0 after the amortizations,
+    // which showed the recalculated payment for 'payment' reductions but the
+    // original one for 'term' reductions. A zero capital has no payment.
+    initialPayment = pendingAmount > 0 ? monthlyPayment : null;
+
     while (remainingMonths > 0 && pendingAmount > 0) {
       // Fase 2.1: floored — with an initial period that is not a multiple of
       // 12 the header used to render a fractional year ('Año 2027.5').
@@ -210,9 +217,6 @@
         interest: monthInterest,
         remainingMonths: Math.max(0, remainingMonths - 1),
       });
-      if (month == 0) {
-        initialPayment = monthlyPayment;
-      }
       month++;
       remainingMonths--;
     }

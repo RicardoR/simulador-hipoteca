@@ -328,7 +328,7 @@ describe('characterization — amortization reductions', () => {
     expect(rows[12].payment).toBeLessThan(rows[11].payment);
   });
 
-  it('initialPayment is captured after the month-0 amortization (current behavior)', () => {
+  it('initialPayment is the original offer payment, before any amortization (Fase 2.3)', () => {
     const rate = 2.25;
     const original = annuity(100000, 240, rate);
     const result = calculateSimulation({
@@ -337,19 +337,24 @@ describe('characterization — amortization reductions', () => {
     });
     const rows = monthRows(result);
 
-    // pinned on purpose: today 'Tu cuota inicial' shows the recalculated
-    // payment when month 1 carries a 'payment' amortization. Fase 2.3 of
-    // plan/fix-and-polish.md will flip this to the original payment.
-    expect(result.initialPayment).toBeCloseTo(rows[0].payment, 6);
-    expect(result.initialPayment).not.toBeCloseTo(original, 3);
+    // Fixed by owner decision a (Fase 2.3 of plan/fix-and-polish.md): it used
+    // to be captured after the month-0 amortization, showing the recalculated
+    // payment for 'payment' reductions. Now it is the offer payment.
+    expect(result.initialPayment).toBeCloseTo(original, 6);
+    expect(result.initialPayment).not.toBeCloseTo(rows[0].payment, 3);
 
-    // with a 'term' reduction the payment never changes, so both coincide —
-    // the inconsistency between the two reduction types is what Fase 2.3 fixes
+    // with a 'term' reduction the payment never changes, so both are the same
     const termResult = calculateSimulation({
       ...fixedInput(100000, 20, rate),
       amortizations: [{ year: 1, month: 1, amount: 1000, type: 'term' }],
     });
     expect(termResult.initialPayment).toBeCloseTo(original, 6);
+  });
+
+  it('a zero capital keeps initialPayment null (the UI hides the summary)', () => {
+    const result = calculateSimulation(fixedInput(0, 20, 2.25));
+    expect(result.initialPayment).toBeNull();
+    expect(result.rows[0]).toEqual({ kind: 'initial', balance: 0 });
   });
 
   it('totalInterest equals the sum of the monthly interest rows', () => {
