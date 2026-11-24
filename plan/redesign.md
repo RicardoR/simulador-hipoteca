@@ -19,7 +19,7 @@ Rama de trabajo: **`redesign-app`** (creada desde master `dc62dd9`, con el Tramo
 | **1 · Alcance** | Delimitar qué se toca y qué no (ver abajo) — decisión mía | ✅ Hecho — fijado abajo |
 | **2 · Tema vs custom** | Mirar los 50 temas en usehallmark.com y elegir tema concreto o modo custom — decisión del propietario | ✅ Hecho — opción 3: deal `r0` (seed `spanish-mortgage-simulator-calculate-834f·eb2e0889·2026-11-21·r0`), elegido **Almanac** (1/3) |
 | **3 · Rediseñar** | `--before` con dev server → rediseño siguiendo Hallmark → sweep `--kept` | ✅ Hecho — Almanac aplicado a la pantalla de trabajo; wiring conservado |
-| **4 · Puerta de verificación** | `npm test -- test/` → `npm run build` → `sloplint --render` en verde → revisar en navegador → push → **deploy en Vercel** → PR | 🔵 En curso — tests, build, render y finish review completados; queda revisión del propietario y deploy |
+| **4 · Puerta de verificación** | `npm test -- test/` → `npm run build` → `sloplint --render` en verde → revisar en navegador → push → **deploy en Vercel** → PR | ✅ Hecho — merge a master `41ece5e` |
 | **Anexo · Mejoras extras** | Campo numérico Euríbor y selectores con estilo Almanac | ✅ Hecho — ver alcance y validación al final |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho

@@ -5,15 +5,20 @@
  * can never overwrite each other (bug #2).
  *
  * `src/lib/simulation.js` is imported for its side effect only (it exposes
- * `globalThis.calculateSimulation`) and must not change: it is the stable
- * boundary between the old jQuery code and React, covered by
+ * `globalThis.calculateSimulation`) and is the stable boundary between the old
+ * jQuery code and React. Changes are owner-approved but tests-first:
+ * characterization tests pin the current behavior, then the fix lands
+ * (`plan/fix-and-polish.md`). Covered by `test/state.test.js` and
  * `test/simulation.test.js`.
  */
 import './lib/simulation.js';
 
 const calculateSimulation = globalThis.calculateSimulation;
 
-/** Default euribor series, one value per loan year (50 = max term). */
+/**
+ * Default euribor series, one value per loan year: 51 entries for the
+ * 50-year max term (only indexes 0..49 are read; the extra entry is inert).
+ */
 export const EURIBOR_SERIES = [
   2.2, 2.1, 2, 2.3, 2.4, 2.3, 2.2, 2.4, 3.1, 3.9, 4.5, 5, 5.1,
   4.7, 4.6, 4.1, 3.9, 3.5, 3, 2.4, 2.2, 2.6, 3, 3.3, 3.5, 3.6, 3.8,
@@ -30,6 +35,9 @@ export const SCENARIO_WARNING =
 
 export const INVALID_FIELDS_WARNING =
   'Aviso: hay campos con valores no válidos; revísalos en rojo antes de calcular.';
+
+/** Default amount for a newly added amortization row. */
+const DEFAULT_AMORTIZATION = { amount: '1000' };
 
 /** HTML defaults — the same the static page had before the scenario loads. */
 const DEFAULT_FIELDS = {
@@ -52,7 +60,9 @@ const DEFAULT_FIELDS = {
  */
 const FIELD_RULES = {
   capital: { kind: 'int', min: 0 },
-  years: { kind: 'number', min: 1, max: 50 },
+  // Owner decision 1 (Fase 1.4): the term is integer-only too, like every
+  // other amount field — '12.5' years would truncate to 12 while shown.
+  years: { kind: 'int', min: 1, max: 50 },
   startYear: { kind: 'int', min: 1900, max: 2200 },
   fixedInterest: { kind: 'number', min: 0 },
   euriborSpread: { kind: 'number', min: 0 },
@@ -61,14 +71,22 @@ const FIELD_RULES = {
 };
 
 export function parseIntField(value) {
-  const stripped = String(value).replace(/[.,\s]/g, '');
-  if (!/^\d+$/.test(stripped)) return NaN;
-  return parseInt(stripped, 10);
+  // Strict digits (owner decision 1, Fase 1.4 of plan/fix-and-polish.md):
+  // no separator stripping — '1.5' must never become 15 in a capital field.
+  // Edge whitespace is trimmed; dots, commas or inner spaces are invalid.
+  const trimmed = String(value).trim();
+  if (!/^\d+$/.test(trimmed)) return NaN;
+  return parseInt(trimmed, 10);
 }
 
 export function parseFloatField(value) {
-  const normalized = String(value).replace(',', '.');
-  if (normalized === '') return NaN;
+  // Fase 1.3: trim first — Number('   ') === 0 used to let a blank field
+  // through as 0% interest.
+  // Fase 6.2 (decision 1's decimal twin): a strict digits-with-optional-
+  // separator syntax — Number() alone let '1e3' parse as 1000 and '+3' as 3.
+  // The interest rules are min 0, so no legitimate value is lost.
+  const normalized = String(value).trim().replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return NaN;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : NaN;
 }
@@ -83,13 +101,30 @@ export function isValidField(name, value) {
   return true;
 }
 
+/**
+ * Cross-field rule (Fase 1.2 of plan/fix-and-polish.md): the initial fixed
+ * period must be strictly shorter than the whole term, or no annual review
+ * would ever happen — the interest would stay fixed for the whole loan and
+ * the euribor overrides would be silently ignored.
+ */
+export function isValidInitialPeriod(value, termYears) {
+  const parsed = parseIntField(value);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed < termYears * 12;
+}
+
 export function isValidAmortizationAmount(value) {
   return Number.isFinite(parseIntField(value)) && parseIntField(value) >= 0;
 }
 
+/** The euribor draft is typed by hand: a decimal comma, like in every other
+ * field of this UI (Fase 6.1 of plan/fix-and-polish.md). */
+function parseEuriborValue(value) {
+  return Number(String(value).replace(',', '.'));
+}
+
 export function isValidEuriborValue(value) {
   if (typeof value !== 'string' || value.trim() === '') return false;
-  const parsed = Number(value);
+  const parsed = parseEuriborValue(value);
   if (!Number.isFinite(parsed) || parsed < EURIBOR_MIN || parsed > EURIBOR_MAX) return false;
   const stepPosition = (parsed - EURIBOR_MIN) / EURIBOR_STEP;
   return Math.abs(stepPosition - Math.round(stepPosition)) < 1e-8;
@@ -157,12 +192,18 @@ function applyScenario(state, scenario) {
     setField('initialPeriodActive', scenario.initialPeriodActive);
   }
 
+  // Cross-field rule (Fase 1.2): an out-of-range initial period loads marked
+  // so the user sees it in red before the first calculation.
+  invalid.initialPeriodMonths = !isValidInitialPeriod(fields.initialPeriodMonths, termYears);
+
   const amortizations = [];
   let nextId = state.nextAmortizationId;
   if (Array.isArray(scenario.amortizations)) {
     scenario.amortizations.forEach((amortization) => {
       if (!amortization || typeof amortization !== 'object') return;
       const year = Number(amortization.year);
+      const amount =
+        typeof amortization.amount === 'number' ? String(amortization.amount) : DEFAULT_AMORTIZATION.amount;
       amortizations.push({
         id: nextId++,
         // The year is stored as given when it is a plausible year: if it falls
@@ -171,10 +212,11 @@ function applyScenario(state, scenario) {
         // silently clamping (bug #7).
         year: Number.isFinite(year) && year >= 1 ? Math.trunc(year) : 1,
         month: Math.min(Math.max(Number(amortization.month) || 1, 1), 12),
-        amount:
-          typeof amortization.amount === 'number' ? String(amortization.amount) : DEFAULT_AMORTIZATION.amount,
+        amount,
         type: amortization.type === 'payment' ? 'payment' : 'term',
-        invalidAmount: false,
+        // Decision 1 (Fase 1.4): a non-integer scenario amount is marked
+        // instead of reaching the calculation unparsed.
+        invalidAmount: !isValidAmortizationAmount(amount),
       });
     });
   }
@@ -192,8 +234,6 @@ function applyScenario(state, scenario) {
     calcWarning: null,
   };
 }
-
-const DEFAULT_AMORTIZATION = { amount: '1000' };
 
 /** Sparse euribor array for the simulation: one entry per loan year. */
 function buildEuriborInput(state) {
@@ -226,8 +266,22 @@ function buildSimulationInput(state) {
   };
 }
 
+/** Fields rendered only for one mortgage type; the rest are always visible. */
+const ALWAYS_VISIBLE_FIELDS = ['capital', 'years', 'startYear'];
+const TYPE_ONLY_FIELDS = {
+  variable: ['euriborSpread', 'initialFixedInterest', 'initialPeriodMonths'],
+  fixed: ['fixedInterest'],
+};
+
 export function hasInvalidFields(state) {
-  if (Object.values(state.invalid).some(Boolean)) return true;
+  // Only the fields rendered for the current type can block the calculation
+  // (Fase 1.1 of plan/fix-and-polish.md): a hidden field cannot show its red
+  // state, so it must not block silently either. The flags stay untouched, so
+  // a field that reappears after switching the type is red again immediately.
+  // Symmetric with the euribor drafts gate below, and it also covers a
+  // scenario that switches the type with garbage left in the hidden fields.
+  const visibleFields = [...ALWAYS_VISIBLE_FIELDS, ...(TYPE_ONLY_FIELDS[state.fields.type] || [])];
+  if (visibleFields.some((name) => state.invalid[name])) return true;
   if (state.amortizations.some((amortization) => amortization.invalidAmount)) return true;
   if (state.fields.type !== 'variable') return false;
   return Object.entries(state.euriborDrafts).some(
@@ -265,6 +319,15 @@ export function reducer(state, action) {
       const fields = { ...state.fields, [name]: value };
       const invalid = { ...state.invalid, [name]: !isValidField(name, value) };
       const euriborDrafts = name === 'type' && value === 'fixed' ? {} : state.euriborDrafts;
+
+      // Cross-field rule (Fase 1.2): the initial period is re-checked against
+      // the term when either of the two changes.
+      if (name === 'initialPeriodMonths' || name === 'years') {
+        const termYears =
+          name === 'years' && !invalid.years ? Math.trunc(parseFloatField(value)) : state.termYears;
+        invalid.initialPeriodMonths = !isValidInitialPeriod(fields.initialPeriodMonths, termYears);
+      }
+
       const next = withFreshResult({ ...state, fields, invalid, euriborDrafts });
       if (name === 'years' && !invalid.years) {
         next.termYears = Math.trunc(parseFloatField(value));
@@ -288,7 +351,7 @@ export function reducer(state, action) {
     case 'euribor/inputChanged': {
       const euriborDrafts = { ...state.euriborDrafts, [action.index]: action.value };
       const euriborOverrides = isValidEuriborValue(action.value)
-        ? { ...state.euriborOverrides, [action.index]: Number(action.value) }
+        ? { ...state.euriborOverrides, [action.index]: parseEuriborValue(action.value) }
         : state.euriborOverrides;
       return withFreshResult({ ...state, euriborDrafts, euriborOverrides });
     }

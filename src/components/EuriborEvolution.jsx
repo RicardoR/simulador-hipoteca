@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   EURIBOR_MAX,
   EURIBOR_MIN,
@@ -7,25 +8,32 @@ import {
 } from '../state.js';
 
 /**
- * Euribor evolution: a range and number input per loan year. The last valid
- * override (or the default series) drives the slider and calculation; raw
- * drafts let the user edit decimals without diverging from that value (bug #3).
+ * The slider list, memoized on the slices it reads (Fase 4.4 of
+ * plan/fix-and-polish.md): at a 50-year term this is 100+ inputs that used to
+ * rebuild on every unrelated state change. `dispatch` is stable from
+ * useReducer; the overrides/drafts objects only change on euribor actions.
  */
-export default function EuriborEvolution({ state, dispatch }) {
+const EuriborSliderList = memo(function EuriborSliderList({
+  termYears,
+  overrides,
+  drafts,
+  startYear,
+  dispatch,
+}) {
   const sliders = [];
-  for (let yearIndex = 0; yearIndex < state.termYears; yearIndex++) {
+  for (let yearIndex = 0; yearIndex < termYears; yearIndex++) {
     const index = yearIndex * 12;
-    const override = state.euriborOverrides[index];
+    const override = overrides[index];
     const value = typeof override === 'number' ? override : (EURIBOR_SERIES[yearIndex] ?? 0);
-    const draft = state.euriborDrafts[index];
-    const year = state.startYear + yearIndex;
+    const draft = drafts[index];
+    const year = startYear + yearIndex;
     const inputInvalid = typeof draft === 'string' && !isValidEuriborValue(draft);
     sliders.push(
       <div data-year={year} key={index}>
         <span className="year">{year}</span>
         <input
           id={`euribor-slider-${index}`}
-          aria-label={`Euríbor ${state.startYear + yearIndex}`}
+          aria-label={`Euríbor ${year}`}
           type="range"
           min={EURIBOR_MIN}
           max={EURIBOR_MAX}
@@ -67,6 +75,15 @@ export default function EuriborEvolution({ state, dispatch }) {
     );
   }
 
+  return <div id="euribor">{sliders}</div>;
+});
+
+/**
+ * Euribor evolution: a range and number input per loan year. The last valid
+ * override (or the default series) drives the slider and calculation; raw
+ * drafts let the user edit decimals without diverging from that value (bug #3).
+ */
+export default function EuriborEvolution({ state, dispatch }) {
   return (
     <div className={`euribor${state.euriborOpen ? ' open' : ''}`}>
       <h2 className="title">
@@ -85,7 +102,13 @@ export default function EuriborEvolution({ state, dispatch }) {
           <span className="toggle-mark" aria-hidden="true"></span>
         </button>
       </h2>
-      <div id="euribor">{sliders}</div>
+      <EuriborSliderList
+        termYears={state.termYears}
+        overrides={state.euriborOverrides}
+        drafts={state.euriborDrafts}
+        startYear={state.startYear}
+        dispatch={dispatch}
+      />
     </div>
   );
 }

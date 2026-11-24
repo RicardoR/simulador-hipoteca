@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import App from '../src/App.jsx';
 
 afterEach(() => {
@@ -216,6 +217,278 @@ describe('amortization year vs term (bug #7)', () => {
   });
 });
 
+describe('amortization editing in the UI (Fase 3.2)', () => {
+  it('removes exactly the row whose button was clicked', async () => {
+    mockFetchScenario({
+      capital: 150000,
+      years: 25,
+      amortizations: [
+        { year: 5, month: 3, amount: 1000, type: 'term' },
+        { year: 7, month: 1, amount: 2000, type: 'payment' },
+      ],
+    });
+    render(<App />);
+    await waitFor(() =>
+      expect(document.querySelectorAll('#amortizationsList .amortization-row')).toHaveLength(2)
+    );
+
+    const rows = document.querySelectorAll('#amortizationsList .amortization-row');
+    expect(rows[0].querySelector('.amount-input').value).toBe('1000');
+    expect(rows[1].querySelector('.amount-input').value).toBe('2000');
+    // each button names the row it deletes; the amount disambiguates twin
+    // rows in the same year and month (Fase 4.2 + 6.3)
+    expect(rows[0].querySelector('.remove-amortization-action').getAttribute('aria-label')).toBe(
+      'Eliminar la amortización de 1000 € del año 5, mes 3'
+    );
+    expect(rows[1].querySelector('.remove-amortization-action').getAttribute('aria-label')).toBe(
+      'Eliminar la amortización de 2000 € del año 7, mes 1'
+    );
+
+    fireEvent.click(rows[0].querySelector('.remove-amortization-action'));
+    const remaining = document.querySelectorAll('#amortizationsList .amortization-row');
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].querySelector('.amount-input').value).toBe('2000');
+  });
+
+  it('an amortization exceeding the balance closes the loan and warns in the UI (Fase 6.4)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.click(document.getElementById('addAmortizationButton'));
+    const amount = document.querySelector('#amortizationsList .amount-input');
+    fireEvent.change(amount, { target: { value: '999999' } });
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // the loan closes at the amortization month and the lib warning reaches
+    // the warnings container through formatWarning
+    expect(document.getElementById('resultsTableBody').textContent).toContain(
+      'Fin del préstamo'
+    );
+    expect(document.getElementById('warningsContainer').textContent).toContain(
+      'supera el saldo pendiente'
+    );
+  });
+
+  it('blocks the calculation while an amortization amount is invalid', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.click(document.getElementById('addAmortizationButton'));
+    const amount = document.querySelector('#amortizationsList .amount-input');
+    fireEvent.change(amount, { target: { value: 'abc' } });
+    expect(amount.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+
+    fireEvent.change(amount, { target: { value: '500' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+});
+
+describe('a malformed scenario does not break the app (Fase 3.2)', () => {
+  it('ignores an invalid startDate and wrong-typed fields, and still calculates', async () => {
+    mockFetchScenario({
+      startDate: 'not-a-date',
+      capital: '99999', // string: ignored
+      years: '10', // string: ignored
+      type: 'variable',
+      amortizations: [{ year: 1, month: 1, amount: 4000, type: 'payment' }],
+    });
+    render(<App />);
+
+    // the scenario loads (no fallback warning) and the amortization row appears
+    await waitFor(() =>
+      expect(document.querySelectorAll('#amortizationsList .amortization-row')).toHaveLength(1)
+    );
+    expect(document.getElementById('warningsContainer')).toBeNull();
+
+    // the wrong-typed fields are ignored: the HTML defaults stay, and the
+    // invalid startDate falls back to the current year
+    expect(document.getElementById('capital').value).toBe('150000');
+    expect(document.getElementById('yearsField').value).toBe('25');
+    expect(document.querySelector('#euribor .year').textContent).toBe(
+      String(new Date().getFullYear())
+    );
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+    expect(document.getElementById('resultsTableBody').textContent).toContain('Amort. parcial');
+  });
+});
+
+describe('the Inicio field drives the year labels (Fase 3.2)', () => {
+  it('the table headers and euribor labels follow startYear', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // first header at month 12 → loan year 1 → startYear + 1
+    const firstHeader = document.querySelector('#resultsTableBody .table-event--year');
+    expect(firstHeader.textContent).toContain(`Año ${new Date().getFullYear() + 1}`);
+
+    fireEvent.change(document.getElementById('startYearField'), { target: { value: '2030' } });
+    expect(document.getElementById('resultsTableBody')).toBeNull(); // editing clears the result
+    expect(document.querySelector('#euribor .year').textContent).toBe('2030');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() =>
+      expect(document.querySelectorAll('#resultsTableBody .table-event--year').length).toBeGreaterThan(0)
+    );
+    expect(document.querySelector('#resultsTableBody .table-event--year').textContent).toContain(
+      'Año 2031'
+    );
+  });
+});
+
+describe('the calculate control works from the keyboard (Fase 3.2)', () => {
+  it('is a real button: Enter and Space activate it natively', async () => {
+    const user = userEvent.setup();
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const control = document.getElementById('calculateButton');
+    expect(control.tagName).toBe('BUTTON');
+    control.focus();
+
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // editing clears the result; Space must recalculate it
+    fireEvent.change(document.getElementById('capital'), { target: { value: '120000' } });
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+
+    await user.keyboard(' ');
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
+  it('is aria-disabled while fields are invalid, and clicking it still explains why', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const control = document.getElementById('calculateButton');
+    expect(control.getAttribute('aria-disabled')).toBeNull();
+
+    fireEvent.change(document.getElementById('capital'), { target: { value: '' } });
+    expect(control.getAttribute('aria-disabled')).toBe('true');
+
+    // aria-disabled instead of disabled: the click still runs and the
+    // warning tells the user what to fix, instead of a silent no-op
+    fireEvent.click(control);
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+  });
+});
+
+describe('hidden invalid fields do not block the calculation (Fase 1.1)', () => {
+  it('garbage in "Interés fijo" stops blocking after switching to Variable', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'fixed' } });
+    fireEvent.change(document.getElementById('fixedInterestField'), { target: { value: 'abc' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'variable' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
+  it('the reverse case: garbage in variable-only fields stops blocking under Fijo', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('variableInterestField'), { target: { value: 'abc' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+
+    fireEvent.change(document.getElementById('typeField'), { target: { value: 'fixed' } });
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
+  it('capital rejects decimals and separators, whole digits pass (Fase 1.4)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const capital = document.getElementById('capital');
+    for (const bad of ['1.5', '1,5', '1 500']) {
+      fireEvent.change(capital, { target: { value: bad } });
+      expect(capital.getAttribute('aria-invalid')).toBe('true');
+      fireEvent.click(document.getElementById('calculateButton'));
+      expect(document.getElementById('resultsTableBody')).toBeNull();
+    }
+
+    fireEvent.change(capital, { target: { value: '1500' } });
+    expect(capital.getAttribute('aria-invalid')).toBeNull();
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+  });
+
+  it('a whitespace-only interest field is invalid instead of 0% (Fase 1.3)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    const interest = document.getElementById('variableInterestField');
+    fireEvent.change(interest, { target: { value: '   ' } });
+    expect(interest.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+  });
+
+  it('invalid fields announce their error via aria-describedby (Fase 4.3)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('capital'), { target: { value: '' } });
+    const capital = document.getElementById('capital');
+    expect(capital.getAttribute('aria-describedby')).toBe('capital-error');
+    const hint = document.getElementById('capital-error');
+    expect(hint).not.toBeNull();
+    expect(hint.textContent).toContain('no válido');
+
+    // valid again: the link and the hint are gone
+    fireEvent.change(capital, { target: { value: '150000' } });
+    expect(capital.getAttribute('aria-describedby')).toBeNull();
+    expect(document.getElementById('capital-error')).toBeNull();
+  });
+
+  it('blocks the calculation when the initial period reaches the term (Fase 1.2)', async () => {
+    mockFetchScenario(null);
+    render(<App />);
+    await waitForScenarioWarning();
+
+    fireEvent.change(document.getElementById('yearsField'), { target: { value: '10' } });
+    const period = document.getElementById('fixedMonthsField');
+    fireEvent.change(period, { target: { value: '120' } }); // 120 >= 10 * 12
+    expect(period.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    expect(document.getElementById('resultsTableBody')).toBeNull();
+    expect(document.getElementById('warningsContainer').textContent).toContain('no válidos');
+  });
+});
+
 describe('characterization — the reference numbers through the UI', () => {
   it('100k / 15y / fixed 2.25% → payment 655.08 and a schedule that ends at 0', async () => {
     mockFetchScenario(null);
@@ -231,8 +504,10 @@ describe('characterization — the reference numbers through the UI', () => {
     await waitFor(() => expect(document.getElementById('mortgageContainer')?.textContent).toBe('655.08€'));
 
     const rows = document.querySelectorAll('#resultsTableBody tr');
-    expect(rows).toHaveLength(181); // initial row + 180 monthly rows
+    expect(rows).toHaveLength(182); // initial row + 180 monthly rows + closing row
     expect(rows[180].querySelectorAll('td')[2].textContent).toBe('0.00');
+    // Fase 2.2: the last year is explicit now (startYear 2026 + loan year 0)
+    expect(rows[181].textContent).toContain('Fin del préstamo');
   });
 
   it('blocks the calculation while a field is invalid instead of rendering NaN', async () => {
