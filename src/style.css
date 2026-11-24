@@ -608,8 +608,12 @@
   font-weight: 500;
 }
 
-.table-event--period td {
-  color: var(--color-muted);
+.results-table-section tbody tr.table-event--period > td:first-child {
+  border-block: var(--rule-bar) solid var(--color-accent);
+  background: var(--color-paper-2);
+  color: var(--color-accent-2);
+  font-weight: 600;
+  text-align: center;
 }
 
 .results-table-section tbody .table-event--amortization td {
