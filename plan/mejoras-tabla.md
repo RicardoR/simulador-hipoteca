@@ -15,10 +15,10 @@ Rama de trabajo: **`table-months`** (desde master `9434ea0`, limpio).
 
 | Fase | Tarea | Estado |
 |---|---|---|
-| **1 · Mes de inicio** | `startMonth` en estado + select de mes en "Inicio" + siembra desde `startDate` | ⬜ Pendiente |
-| **2 · Nombres de mes** | Helper de calendario + columna Mes con nombre + cierre y amortizaciones con fecha | ⬜ Pendiente |
-| **3 · Centrado** | `text-align: center` solo en las filas de amortización | ⬜ Pendiente |
-| **4 · Docs** | `AGENTS.md` (`startMonth`, módulo `loanCalendar`) | ⬜ Pendiente |
+| **1 · Mes de inicio** | `startMonth` en estado + select de mes en "Inicio" + siembra desde `startDate` | ✅ Hecho |
+| **2 · Nombres de mes** | Helper de calendario + columna Mes con nombre + cierre y amortizaciones con fecha | ✅ Hecho |
+| **3 · Centrado** | `text-align: center` solo en las filas de amortización | ✅ Hecho (sloplint render: 0 FAIL) |
+| **4 · Docs** | `AGENTS.md` (`startMonth`, módulo `loanCalendar`) | ✅ Hecho |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
