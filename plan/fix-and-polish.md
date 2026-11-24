@@ -39,10 +39,10 @@ Rama de trabajo: **`fix-and-polish`** (creada desde master `44aac14`, limpio).
 | | `AGENTS.md` (nombres de componentes, "16 tests", `npm test -- test/`), `simulation.js:8`, `state.js:16` | ✅ Hecho |
 | | `.idea/` fuera del tracking + `.gitignore`; exports sin usar de `state.js`; `README.md` | ✅ Hecho (exports: se quedan, los consume `test/state.test.js`; `SCENARIO_WARNING` ahora asertado) |
 | | Casillas de `plan/redesign-personal-branches.md` y Fase 4 de `plan/redesign.md` (trabajo ya hecho) | ✅ Hecho |
-| **6 · Huecos del análisis** | Euríbor escrito a mano **rechaza la coma** (`isValidEuriborValue`, `state.js:90`) | ⬜ Pendiente |
-| | Sintaxis de los campos decimales sin definir (`parseFloatField`: `1e3` → 1000, `+3` → 3) | ⬜ Pendiente |
-| | Colisión de `aria-label` en "Eliminar" (dos filas mismo año/mes suenan igual) | ⬜ Pendiente |
-| | Path UI del aviso `amortization-exceeds-balance` (solo testeado a nivel lib) | ⬜ Pendiente |
+| **6 · Huecos del análisis** | Euríbor escrito a mano **rechaza la coma** (`isValidEuriborValue`, `state.js:90`) | ✅ Hecho (normalizada también al guardar el override) |
+| | Sintaxis de los campos decimales sin definir (`parseFloatField`: `1e3` → 1000, `+3` → 3) | ✅ Hecho (decisión 5) |
+| | Colisión de `aria-label` en "Eliminar" (dos filas mismo año/mes suenan igual) | ✅ Hecho (el importe desambigua) |
+| | Path UI del aviso `amortization-exceeds-balance` (solo testeado a nivel lib) | ✅ Hecho |
 
 **Leyenda:** ⬜ Pendiente · 🔵 En curso · ✅ Hecho
 
