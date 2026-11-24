@@ -213,7 +213,7 @@ function sparseEuribor(valuesPerYear) {
 }
 
 describe('characterization — variable type: the annual review', () => {
-  it('reviews every 12 months: header row, spread + euribor, re-annuitization over the months left', () => {
+  it('reviews every 12 months: review row, spread + euribor, re-annuitization over the months left', () => {
     const result = calculateSimulation({
       ...fixedInput(100000, 5, 0),
       type: 'variable',
@@ -221,10 +221,11 @@ describe('characterization — variable type: the annual review', () => {
       euribor: sparseEuribor([2, 3, 4, 2.5, 3.5]),
     });
 
-    // reviews at months 12/24/36/48; month 0 runs on euribor[0] with no header
-    const headers = result.rows.filter((row) => row.kind === 'header');
-    expect(headers.map((row) => row.loanYear)).toEqual([1, 2, 3, 4]);
-    expect(headers.map((row) => row.euribor)).toEqual([3, 4, 2.5, 3.5]);
+    // reviews after 12/24/36/48 payments apply from loan months 13/25/37/49
+    const reviews = result.rows.filter((row) => row.kind === 'review');
+    expect(reviews.map((row) => row.loanYear)).toEqual([1, 2, 3, 4]);
+    expect(reviews.map((row) => row.month)).toEqual([13, 25, 37, 49]);
+    expect(reviews.map((row) => row.euribor)).toEqual([3, 4, 2.5, 3.5]);
     expect(result.rows[1].kind).toBe('month');
 
     // year 1 runs at 1.5 + 2 = 3.5%
@@ -256,23 +257,24 @@ describe('characterization — variable type: the initial fixed period', () => {
     expect(rows[0].interest).toBeCloseTo(100000 * periodRate(1.25), 6);
     expect(rows[17].interest).toBeCloseTo(rows[16].balance * periodRate(1.25), 6);
 
-    // the period ends at month 18: period-end row right before the review header
-    const headerIndex = result.rows.findIndex((row) => row.kind === 'header');
-    expect(result.rows[headerIndex - 1].kind).toBe('period-end');
+    // the period ends after month 18: period-end row right before the review
+    const reviewIndex = result.rows.findIndex((row) => row.kind === 'review');
+    expect(result.rows[reviewIndex - 1].kind).toBe('period-end');
     expect(result.rows.filter((row) => row.kind === 'period-end')).toHaveLength(1);
 
     // Fixed by Fase 2.1 of plan/fix-and-polish.md: the loan year is floored
-    // (it used to render as 1.5 — 'Año … año 1.5 del préstamo').
-    expect(result.rows[headerIndex].loanYear).toBe(1);
+    // (it used to render as 1.5 on the review event).
+    expect(result.rows[reviewIndex].loanYear).toBe(1);
+    expect(result.rows[reviewIndex].month).toBe(19);
     // the review reuses the last euribor read (index 12) until the next
     // multiple of 12
-    expect(result.rows[headerIndex].euribor).toBe(3);
+    expect(result.rows[reviewIndex].euribor).toBe(3);
 
     // month 19 already runs at the variable rate: 0.5 + euribor[12] = 3.5%
     expect(rows[18].interest).toBeCloseTo(rows[17].balance * periodRate(3.5), 6);
   });
 
-  it('every header shows a whole loan year (Fase 2.1)', () => {
+  it('every review shows a whole loan year (Fase 2.1)', () => {
     const result = calculateSimulation({
       ...fixedInput(100000, 10, 0),
       type: 'variable',
@@ -284,7 +286,7 @@ describe('characterization — variable type: the initial fixed period', () => {
     });
 
     const loanYears = result.rows
-      .filter((row) => row.kind === 'header')
+      .filter((row) => row.kind === 'review')
       .map((row) => row.loanYear);
     expect(loanYears.length).toBeGreaterThan(0);
     for (const loanYear of loanYears) expect(Number.isInteger(loanYear)).toBe(true);
@@ -299,8 +301,8 @@ describe('characterization — variable type: the initial fixed period', () => {
     });
 
     // the single review point coincides with the end: the whole year runs on
-    // euribor[0] + spread, no header row at all
-    expect(result.rows.filter((row) => row.kind === 'header')).toHaveLength(0);
+    // euribor[0] + spread, no review row is needed
+    expect(result.rows.filter((row) => row.kind === 'review')).toHaveLength(0);
     const rows = monthRows(result);
     expect(rows).toHaveLength(12);
     expect(rows[0].payment).toBeCloseTo(annuity(100000, 12, 3.5), 6);
@@ -318,8 +320,9 @@ describe('characterization — variable type: the initial fixed period', () => {
       euribor: sparseEuribor([2, 3]),
     });
 
-    const headers = result.rows.filter((row) => row.kind === 'header');
-    expect(headers).toHaveLength(1);
+    const reviews = result.rows.filter((row) => row.kind === 'review');
+    expect(reviews).toHaveLength(1);
+    expect(reviews[0].month).toBe(7);
     expect(result.rows.filter((row) => row.kind === 'period-end')).toHaveLength(1);
     // months 1-6 at the initial fixed rate, month 7 onwards at the review rate
     expect(monthRows(result)[0].interest).toBeCloseTo(100000 * periodRate(1.25), 6);
@@ -365,6 +368,20 @@ describe('characterization — amortization reductions', () => {
     const balanceBefore = rows[11].balance;
     expect(rows[12].payment).toBeCloseTo(annuity(balanceBefore - 10000, 228, rate), 6);
     expect(rows[12].payment).toBeLessThan(rows[11].payment);
+  });
+
+  it('amortization rows carry their loan month so the table can date them', () => {
+    const result = calculateSimulation({
+      ...fixedInput(100000, 20, 2.25),
+      amortizations: [{ year: 2, month: 1, amount: 10000, type: 'payment' }],
+    });
+    // year 2 month 1 → loan month 13
+    expect(result.rows.find((row) => row.kind === 'amortization')).toEqual({
+      kind: 'amortization',
+      month: 13,
+      amount: 10000,
+      reduction: 'payment',
+    });
   });
 
   it('initialPayment is the original offer payment, before any amortization (Fase 2.3)', () => {

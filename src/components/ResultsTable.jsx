@@ -1,7 +1,14 @@
 /** Result summary + amortization table, rendered only after calculation. */
 import { memo } from 'react';
+import { MONTH_NAMES, loanCalendarMonth } from '../lib/loanCalendar.js';
 
-function ResultsTable({ result, startYear }) {
+/** "Jun 2023" for a loan month, given the form's start month/year. */
+function monthLabel(loanMonth, startMonth, startYear) {
+  const { monthIndex, year } = loanCalendarMonth(loanMonth, startMonth, startYear);
+  return `${MONTH_NAMES[monthIndex]} ${year}`;
+}
+
+function ResultsTable({ result, startMonth, startYear }) {
   return (
     <>
       {result.initialPayment != null && (
@@ -35,7 +42,7 @@ function ResultsTable({ result, startYear }) {
               </tr>
             </thead>
             <tbody id="resultsTableBody">
-              {result.rows.map((row, index) => renderRow(row, index, startYear))}
+              {renderRows(result.rows, startMonth, startYear)}
             </tbody>
           </table>
         </div>
@@ -44,7 +51,38 @@ function ResultsTable({ result, startYear }) {
   );
 }
 
-function renderRow(row, key, startYear) {
+function renderRows(rows, startMonth, startYear) {
+  let lastCalendarYear = null;
+  const rendered = [];
+
+  rows.forEach((row, index) => {
+    const loanMonth =
+      row.kind === 'month' ||
+      row.kind === 'amortization' ||
+      row.kind === 'review' ||
+      row.kind === 'period-end'
+        ? row.month
+        : null;
+
+    if (loanMonth != null) {
+      const { year } = loanCalendarMonth(loanMonth, startMonth, startYear);
+      if (year !== lastCalendarYear) {
+        rendered.push(
+          <tr className="table-event table-event--year" key={`calendar-year-${index}`}>
+            <td colSpan={5}>Año {year}</td>
+          </tr>
+        );
+        lastCalendarYear = year;
+      }
+    }
+
+    rendered.push(renderRow(row, index, startMonth, startYear));
+  });
+
+  return rendered;
+}
+
+function renderRow(row, key, startMonth, startYear) {
   switch (row.kind) {
     case 'initial':
       return (
@@ -64,11 +102,12 @@ function renderRow(row, key, startYear) {
           </td>
         </tr>
       );
-    case 'header':
+    case 'review':
       return (
-        <tr className="table-event table-event--year" key={key}>
+        <tr className="table-event table-event--review" key={key}>
           <td colSpan={5}>
-            Año {startYear + row.loanYear}, Euríbor: {row.euribor}, año {row.loanYear} del préstamo
+            Revisión anual de cuota: Euríbor {row.euribor} %, año {row.loanYear} del préstamo
+            ({monthLabel(row.month, startMonth, startYear)})
           </td>
         </tr>
       );
@@ -77,7 +116,7 @@ function renderRow(row, key, startYear) {
         <tr className="table-event table-event--amortization" key={key}>
           <td colSpan={5}>
             Amort. parcial de <span className="num">{row.amount} €</span>, reducción de{' '}
-            {row.reduction === 'term' ? 'plazo' : 'cuota'}
+            {row.reduction === 'term' ? 'plazo' : 'cuota'} ({monthLabel(row.month, startMonth, startYear)})
           </td>
         </tr>
       );
@@ -85,14 +124,18 @@ function renderRow(row, key, startYear) {
       return (
         <tr className="table-event" key={key}>
           <td colSpan={5}>
-            Fin del préstamo (mes {row.months}, año {startYear + row.loanYear})
+            {row.months > 0
+              ? `Fin del préstamo (${monthLabel(row.months, startMonth, startYear)} · mes ${row.months})`
+              : 'Fin del préstamo'}
           </td>
         </tr>
       );
     case 'month':
       return (
         <tr key={key}>
-          <td className="num">{row.month}</td>
+          <td className="num">
+            {row.month} · {monthLabel(row.month, startMonth, startYear)}
+          </td>
           <td className="num">{row.payment.toFixed(2)}</td>
           <td className="num">{row.balance.toFixed(2)}</td>
           <td className="num">{row.principal.toFixed(2)}</td>

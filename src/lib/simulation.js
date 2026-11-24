@@ -152,8 +152,7 @@
 
     while (remainingMonths > 0 && pendingAmount > 0) {
       // Fase 2.1: floored — with an initial period that is not a multiple of
-      // 12 the header used to render a fractional year ('Año 2027.5').
-      // Math.abs was a no-op here: month is never negative.
+      // 12 the review event used to carry a fractional loan year.
       const loanYear = Math.floor(month / 12);
       if (typeof euribor[month] == 'number') {
         euriborValue = euribor[month];
@@ -163,9 +162,17 @@
         (month == fixedMonths || (month > fixedMonths && typeof euribor[month] == 'number'))
       ) {
         if (hasInitialPeriod && month == fixedMonths) {
-          rows.push({ kind: 'period-end' });
+          rows.push({ kind: 'period-end', month: month + 1 });
         }
-        rows.push({ kind: 'header', loanYear: loanYear, euribor: euriborValue });
+        // This is a rate-review event, not a calendar-year heading. The
+        // review applies to this payment month (1-based); the UI separately
+        // inserts calendar-year labels where January begins.
+        rows.push({
+          kind: 'review',
+          month: month + 1,
+          loanYear: loanYear,
+          euribor: euriborValue,
+        });
         interest = euriborSpread + euriborValue;
         monthlyPayment = calculateMonthlyPayment(pendingAmount, remainingMonths, interest);
       }
@@ -177,6 +184,9 @@
           if (pendingAmount <= 0) break;
           rows.push({
             kind: 'amortization',
+            // Added so the table can date the row (plan/mejoras-tabla.md
+            // Fase 2): 1-based loan month, like the month rows.
+            month: month + 1,
             amount: amortization.amount,
             reduction: amortization.type,
           });

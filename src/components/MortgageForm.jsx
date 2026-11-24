@@ -3,6 +3,7 @@
  * All values live in the reducer (`state.fields`) as strings, exactly like the
  * old DOM inputs did; validation marks the field red and blocks calculation.
  */
+import { MONTH_NAMES } from '../lib/loanCalendar.js';
 import { inputClass, inputErrorProps } from '../lib/inputErrorProps.js';
 
 export default function MortgageForm({ state, dispatch }) {
@@ -45,7 +46,24 @@ export default function MortgageForm({ state, dispatch }) {
       </div>
       <div className="form-field">
         <label htmlFor="startYearField">Inicio</label>
-        <input id="startYearField" size="4" {...inputProps('startYear')} />
+        <div className="field-control">
+          <span className="select-wrap">
+            <select
+              id="startMonthField"
+              className="field-input select-input"
+              aria-label="Mes de inicio"
+              value={state.fields.startMonth}
+              onChange={change('startMonth')}
+            >
+              {MONTH_NAMES.map((name, index) => (
+                <option key={name} value={String(index + 1)}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </span>
+          <input id="startYearField" size="4" {...inputProps('startYear')} />
+        </div>
         {errorHint('startYear')}
       </div>
       <div className="form-field">

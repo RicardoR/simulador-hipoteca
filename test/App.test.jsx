@@ -133,7 +133,10 @@ describe('the visible euribor value is the calculated one (bug #3)', () => {
     await waitFor(() => expect(document.querySelectorAll('#resultsTableBody tr').length).toBeGreaterThan(1));
     const tableRows = document.querySelectorAll('#resultsTableBody tr');
     const initialBalance = Number(tableRows[0].querySelectorAll('td')[2].textContent);
-    const firstMonthCells = [...tableRows[1].querySelectorAll('td')].map((td) => td.textContent.trim());
+    const firstMonthRow = [...tableRows].find((row) =>
+      row.querySelector('td')?.textContent.trim().startsWith('1 ·')
+    );
+    const firstMonthCells = [...firstMonthRow.querySelectorAll('td')].map((td) => td.textContent.trim());
     const interest = Number(firstMonthCells[4]);
     expect((interest * 12 * 100) / initialBalance).toBeCloseTo(1.5 + 5, 5);
   });
@@ -157,7 +160,10 @@ describe('the visible euribor value is the calculated one (bug #3)', () => {
 
     const tableRows = document.querySelectorAll('#resultsTableBody tr');
     const initialBalance = Number(tableRows[0].querySelectorAll('td')[2].textContent);
-    const firstMonthCells = [...tableRows[1].querySelectorAll('td')].map((td) => td.textContent.trim());
+    const firstMonthRow = [...tableRows].find((row) =>
+      row.querySelector('td')?.textContent.trim().startsWith('1 ·')
+    );
+    const firstMonthCells = [...firstMonthRow.querySelectorAll('td')].map((td) => td.textContent.trim());
     const interest = Number(firstMonthCells[4]);
     expect((interest * 12 * 100) / initialBalance).toBeCloseTo(1.5 + 5.4, 5);
   });
@@ -271,7 +277,54 @@ describe('amortization editing in the UI (Fase 3.2)', () => {
       'supera el saldo pendiente'
     );
   });
+});
 
+describe('the schedule is dated with month names (plan/mejoras-tabla.md)', () => {
+  it('dates the schedule with real month names (plan/mejoras-tabla.md)', async () => {
+    mockFetchScenario({
+      startDate: '2023-06-01',
+      capital: 71000,
+      years: 15,
+      type: 'variable',
+      euriborSpread: 1,
+      initialFixedInterest: 2.25,
+      fixedInterest: 2.25,
+      initialPeriodMonths: 60,
+      initialPeriodActive: true,
+      amortizations: [
+        { year: 1, month: 1, amount: 4000, type: 'payment' },
+        { year: 1, month: 2, amount: 6000, type: 'term' },
+        { year: 1, month: 3, amount: 5000, type: 'term' },
+        { year: 1, month: 5, amount: 4000, type: 'term' },
+        { year: 2, month: 4, amount: 500, type: 'term' },
+        { year: 3, month: 8, amount: 5000, type: 'term' },
+      ],
+    });
+    render(<App />);
+
+    // the form select picks the start month up from startDate
+    await waitFor(() => expect(document.getElementById('startMonthField').value).toBe('6'));
+
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    // month rows keep the number (how many payments) and add the month;
+    // with the amortization at month 1, the order is initial → amort. → cuota 1
+    const amortizationRow = document.querySelector('#resultsTableBody .table-event--amortization');
+    expect(amortizationRow.textContent).toContain('reducción de cuota (Jun 2023)');
+
+    const firstMonth = [...document.querySelectorAll('#resultsTableBody tr')]
+      .find((row) => row.querySelector('td')?.textContent.trim().startsWith('1 ·'))
+      .querySelector('td');
+    expect(firstMonth.textContent).toContain('1 · Jun 2023');
+
+    // the closing row shows the exact calendar month, no block approximation
+    const rows = document.querySelectorAll('#resultsTableBody tr');
+    expect(rows[rows.length - 1].textContent).toContain('Fin del préstamo (May 2033 · mes 120)');
+  });
+});
+
+describe('an invalid amortization amount blocks the calculation (Fase 3.2)', () => {
   it('blocks the calculation while an amortization amount is invalid', async () => {
     mockFetchScenario(null);
     render(<App />);
@@ -332,9 +385,9 @@ describe('the Inicio field drives the year labels (Fase 3.2)', () => {
     fireEvent.click(document.getElementById('calculateButton'));
     await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
 
-    // first header at month 12 → loan year 1 → startYear + 1
+    // calendar-year labels use the calendar, not the loan anniversary
     const firstHeader = document.querySelector('#resultsTableBody .table-event--year');
-    expect(firstHeader.textContent).toContain(`Año ${new Date().getFullYear() + 1}`);
+    expect(firstHeader.textContent).toContain(`Año ${new Date().getFullYear()}`);
 
     fireEvent.change(document.getElementById('startYearField'), { target: { value: '2030' } });
     expect(document.getElementById('resultsTableBody')).toBeNull(); // editing clears the result
@@ -345,8 +398,44 @@ describe('the Inicio field drives the year labels (Fase 3.2)', () => {
       expect(document.querySelectorAll('#resultsTableBody .table-event--year').length).toBeGreaterThan(0)
     );
     expect(document.querySelector('#resultsTableBody .table-event--year').textContent).toContain(
-      'Año 2031'
+      'Año 2030'
     );
+  });
+});
+
+describe('calendar year labels and anniversary reviews are separate', () => {
+  it('starts calendar headings in January and keeps the rate review on the September anniversary', async () => {
+    mockFetchScenario({
+      startDate: '2026-09-01',
+      capital: 150000,
+      years: 3,
+      type: 'variable',
+      euriborSpread: 1.5,
+    });
+    render(<App />);
+
+    await waitFor(() => expect(document.getElementById('startMonthField').value).toBe('9'));
+    fireEvent.click(document.getElementById('calculateButton'));
+    await waitFor(() => expect(document.getElementById('resultsTableBody')).not.toBeNull());
+
+    const rows = [...document.querySelectorAll('#resultsTableBody tr')];
+    const year2026 = rows.findIndex((row) => row.classList.contains('table-event--year') && row.textContent.includes('2026'));
+    const year2027 = rows.findIndex((row) => row.classList.contains('table-event--year') && row.textContent.includes('2027'));
+    const month1 = rows.findIndex((row) => row.textContent.includes('1 · Sep 2026'));
+    const month4 = rows.findIndex((row) => row.textContent.includes('4 · Dec 2026'));
+    const month5 = rows.findIndex((row) => row.textContent.includes('5 · Ene 2027'));
+    const month12 = rows.findIndex((row) => row.textContent.includes('12 · Ago 2027'));
+    const review = rows.findIndex((row) => row.classList.contains('table-event--review'));
+    const month13 = rows.findIndex((row) => row.textContent.includes('13 · Sep 2027'));
+
+    expect(year2026).toBeGreaterThan(-1);
+    expect(year2026).toBeLessThan(month1);
+    expect(month4).toBeLessThan(year2027);
+    expect(year2027).toBeLessThan(month5);
+    expect(month12).toBeLessThan(review);
+    expect(review).toBeLessThan(month13);
+    expect(rows[review].textContent).toContain('Revisión anual de cuota');
+    expect(rows[review].textContent).toContain('Sep 2027');
   });
 });
 
@@ -504,10 +593,10 @@ describe('characterization — the reference numbers through the UI', () => {
     await waitFor(() => expect(document.getElementById('mortgageContainer')?.textContent).toBe('655.08€'));
 
     const rows = document.querySelectorAll('#resultsTableBody tr');
-    expect(rows).toHaveLength(182); // initial row + 180 monthly rows + closing row
-    expect(rows[180].querySelectorAll('td')[2].textContent).toBe('0.00');
-    // Fase 2.2: the last year is explicit now (startYear 2026 + loan year 0)
-    expect(rows[181].textContent).toContain('Fin del préstamo');
+    expect(rows.length).toBeGreaterThan(182); // calendar-year labels are inserted too
+    const lastMonthRow = [...rows].filter((row) => row.querySelectorAll('td').length === 5).at(-1);
+    expect(lastMonthRow.querySelectorAll('td')[2].textContent).toBe('0.00');
+    expect(rows[rows.length - 1].textContent).toContain('Fin del préstamo');
   });
 
   it('blocks the calculation while a field is invalid instead of rendering NaN', async () => {
